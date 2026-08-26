@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRANDED — Interactive Survival Drama</title>
+<style>
+:root{
+  --ink:#14171C;
+  --twilight:#211530;
+  --twilight-2:#2E1D45;
+  --twilight-3:#3A2657;
+  --ember:#E9B44C;
+  --ember-dim:#B98A33;
+  --lagoon:#3FB6A8;
+  --coral:#E8654F;
+  --sand:#F3E7D3;
+  --sand-dim:#C9BBA0;
+  --mist:rgba(243,231,211,0.10);
+  --mist-strong:rgba(243,231,211,0.22);
+  --radius:14px;
+  --serif:Georgia, 'Times New Roman', serif;
+  --sans:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  background:
+    radial-gradient(ellipse at 20% -10%, #3A2657 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 10%, #24365A 0%, transparent 45%),
+    linear-gradient(180deg, var(--twilight) 0%, #180F22 100%);
+  color:var(--sand);
+  font-family:var(--sans);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:28px 16px 60px;
+}
+::selection{background:var(--ember); color:var(--ink);}
+
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--sand-dim);
+}
+button{font-family:var(--sans); cursor:pointer; border:none;}
+.btn{
+  background:var(--ember);
+  color:var(--ink);
+  font-weight:700;
+  padding:13px 26px;
+  border-radius:999px;
+  font-size:14.5px;
+  letter-spacing:.01em;
+  transition:transform .15s ease, box-shadow .15s ease;
+  box-shadow:0 6px 18px rgba(233,180,76,0.18);
+}
+.btn:hover{transform:translateY(-2px); box-shadow:0 10px 26px rgba(233,180,76,0.28);}
+.btn:active{transform:translateY(0);}
+.btn.ghost{
+  background:transparent;
+  color:var(--sand);
+  border:1px solid var(--mist-strong);
+  box-shadow:none;
+}
+.btn.ghost:hover{background:var(--mist); transform:translateY(-2px);}
+
+#app{width:100%; max-width:1180px;}
+
+/* ---------- Portraits ---------- */
+.portrait{display:inline-block; border-radius:50%; overflow:hidden; flex-shrink:0; line-height:0;}
+
+/* ---------- Start screen ---------- */
+.start-screen{
+  min-height:80vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  gap:22px;
+  padding:20px;
+}
+.wordmark{
+  font-family:var(--serif);
+  font-weight:700;
+  font-size:clamp(52px,9vw,104px);
+  letter-spacing:.01em;
+  line-height:.95;
+  background:linear-gradient(180deg,#FCEFD2 0%, var(--ember) 60%, var(--ember-dim) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.tagline{
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:clamp(15px,2.2vw,19px);
+  color:var(--sand-dim);
+  max-width:520px;
+}
+.start-blurb{
+  max-width:560px;
+  font-size:14.5px;
+  line-height:1.7;
+  color:var(--sand-dim);
+}
+.cast-preview{
+  display:flex; flex-wrap:wrap; justify-content:center; gap:12px; max-width:600px; margin-top:6px;
+}
+.cast-preview-item{display:flex; flex-direction:column; align-items:center; gap:6px;}
+.cast-preview-item span{font-family:var(--mono); font-size:10px; color:var(--sand-dim);}
+
+.demo-badge{
+  font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--lagoon); border:1px solid rgba(63,182,168,.28); background:rgba(63,182,168,.07);
+  padding:7px 11px; border-radius:999px;
+}
+.how-to-play{
+  width:min(720px,96vw); display:grid; grid-template-columns:repeat(4,1fr); gap:9px;
+  background:rgba(13,9,20,.34); border:1px solid var(--mist-strong); border-radius:16px; padding:12px;
+}
+.how-card{background:rgba(243,231,211,.045);border:1px solid var(--mist);border-radius:12px;padding:12px;text-align:left;min-height:92px}
+.how-num{font-family:var(--mono);font-size:10px;color:var(--ember);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.how-title{font-family:var(--serif);font-size:14px;font-weight:700;margin-bottom:4px}
+.how-text{font-size:11.5px;line-height:1.45;color:var(--sand-dim)}
+.demo-meta{font-family:var(--mono);font-size:10px;color:var(--sand-dim);letter-spacing:.04em}
+@media(max-width:680px){.how-to-play{grid-template-columns:1fr 1fr}.how-card{min-height:0}}
+@media(max-width:430px){.how-to-play{grid-template-columns:1fr}}
+
+/* ---------- Day/Time arc ---------- */
+.arc-wrap{ width:100%; max-width:520px; margin:0 auto 10px; }
+.arc-label{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+.day-title{font-family:var(--serif); font-weight:700; font-size:22px; color:var(--sand);}
+.arc-svg{width:100%; height:44px; display:block;}
+.arc-path{stroke:var(--mist-strong); stroke-width:1.5; fill:none; stroke-dasharray:2 6; stroke-linecap:round;}
+.arc-node{fill:var(--twilight-2); stroke:var(--mist-strong); stroke-width:1.5;}
+.arc-node.active{fill:var(--ember); stroke:var(--ember);}
+.arc-node.done{fill:var(--lagoon); stroke:var(--lagoon);}
+.arc-node-label{font-family:var(--mono); font-size:9px; fill:var(--sand-dim); text-transform:uppercase; letter-spacing:.06em;}
+.arc-node-label.active{fill:var(--ember);}
+
+/* ---------- Layout ---------- */
+.game-shell{ display:grid; grid-template-columns:250px 1fr; gap:22px; align-items:start; }
+@media (max-width:860px){ .game-shell{grid-template-columns:1fr;} }
+
+/* ---------- Cast sidebar ---------- */
+.cast-panel{
+  background:linear-gradient(180deg, var(--twilight-2), var(--twilight-3));
+  border:1px solid var(--mist-strong);
+  border-radius:var(--radius);
+  padding:16px;
+  position:sticky; top:20px;
+}
+.cast-panel h3{ font-family:var(--serif); font-size:15px; font-weight:600; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.cast-list{display:flex; flex-direction:column; gap:6px;}
+.cast-chip{ display:flex; align-items:center; gap:10px; padding:8px; border-radius:10px; background:transparent; transition:background .15s ease; width:100%; text-align:left; }
+.cast-chip:hover{background:var(--mist);}
+.cast-chip .name{font-size:13.5px; font-weight:600; color:var(--sand);}
+.cast-chip .role{font-size:11px; color:var(--sand-dim); font-family:var(--mono);}
+.cast-chip .bar-mini{ width:100%; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; margin-top:4px; overflow:hidden; }
+.cast-chip .bar-mini-fill{height:100%; border-radius:2px;}
+.cast-chip .chip-text{flex:1; min-width:0;}
+
+.journal-toggle{
+  margin-top:14px; width:100%;
+  font-family:var(--mono); font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--sand-dim); background:transparent; border:1px dashed var(--mist-strong);
+  padding:10px; border-radius:10px;
+}
+.journal-toggle:hover{color:var(--ember); border-color:var(--ember-dim);}
+
+/* ---------- Scene panel ---------- */
+.scene-panel{
+  background:linear-gradient(160deg, rgba(46,29,69,0.9), rgba(33,21,48,0.95));
+  border:1px solid var(--mist-strong);
+  border-radius:var(--radius);
+  padding:30px;
+  min-height:420px;
+  display:flex; flex-direction:column;
+  position:relative;
+  overflow:hidden;
+}
+.scene-panel::before{
+  content:'';
+  position:absolute; inset:0;
+  background:radial-gradient(circle at 85% -10%, rgba(63,182,168,0.12), transparent 50%);
+  pointer-events:none;
+}
+.scene-title{ font-family:var(--serif); font-weight:700; font-size:clamp(21px,3vw,27px); margin-bottom:14px; color:var(--sand); }
+.scene-meta{font-family:var(--mono); font-size:11px; color:var(--lagoon); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px;}
+
+.portrait-row{ display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; min-height:56px; align-items:center; }
+.portrait-row .portrait{border:2px solid var(--mist-strong);}
+
+.narration-text{
+  font-family:var(--serif); font-style:italic; font-weight:500;
+  font-size:15.5px; line-height:1.6; color:var(--sand-dim); margin-bottom:16px;
+  min-height:24px;
+}
+.narration-text.loading{color:var(--sand-dim);}
+.dots::after{content:'…'; animation:dotpulse 1.4s infinite;}
+@keyframes dotpulse{0%,100%{opacity:.3;} 50%{opacity:1;}}
+
+.dialogue-list{display:flex; flex-direction:column; gap:10px; margin-bottom:6px;}
+.dialogue-row{display:flex; gap:10px; align-items:flex-start;}
+.dialogue-bubble{
+  background:rgba(243,231,211,0.05); border:1px solid var(--mist-strong);
+  border-radius:4px 14px 14px 14px; padding:9px 14px; max-width:460px;
+}
+.dialogue-speaker{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--lagoon); margin-bottom:3px;}
+.dialogue-line{font-size:14.5px; line-height:1.5; color:#EDE2CE;}
+
+.choices{ margin-top:22px; display:flex; flex-direction:column; gap:10px; }
+.choice-btn{
+  background:rgba(243,231,211,0.04); border:1px solid var(--mist-strong); color:var(--sand);
+  text-align:left; padding:15px 18px; border-radius:12px; font-size:14.5px; line-height:1.5;
+  display:flex; gap:12px; align-items:flex-start;
+  transition:border-color .15s ease, background .15s ease, transform .1s ease;
+}
+.choice-btn:hover{border-color:var(--ember); background:rgba(233,180,76,0.08); transform:translateX(3px);}
+.choice-letter{font-family:var(--mono); font-weight:600; color:var(--ember); flex-shrink:0; padding-top:1px;}
+.choice-btn:disabled{opacity:.4; cursor:default; transform:none;}
+
+
+/* ---------- Illustrated scene stage ---------- */
+.scene-art{
+  position:relative; height:190px; margin:-8px -8px 22px; border-radius:13px;
+  overflow:hidden; border:1px solid rgba(243,231,211,.14);
+  background:#10131d; box-shadow:inset 0 -30px 55px rgba(7,5,12,.45);
+}
+.scene-art svg{width:100%;height:100%;display:block;}
+.scene-art::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(180deg,transparent 52%,rgba(12,8,18,.35));
+  mix-blend-mode:multiply;
+}
+.scene-art .drift{animation:drift 9s ease-in-out infinite alternate; transform-origin:center;}
+.scene-art .flicker{animation:flicker 2.2s ease-in-out infinite; transform-origin:center;}
+.scene-art .pulse{animation:eeriePulse 3.2s ease-in-out infinite;}
+.scene-art .sway{animation:sway 5s ease-in-out infinite alternate; transform-origin:bottom center;}
+@keyframes drift{from{transform:translateX(-5px)}to{transform:translateX(7px)}}
+@keyframes flicker{0%,100%{opacity:.55;transform:scale(.96)}35%{opacity:1;transform:scale(1.05)}70%{opacity:.72;transform:scale(.99)}}
+@keyframes eeriePulse{0%,100%{opacity:.15}50%{opacity:.7}}
+@keyframes sway{from{transform:rotate(-1.5deg)}to{transform:rotate(1.5deg)}}
+
+.eerie-whisper{
+  position:absolute; right:18px; bottom:13px; z-index:3; font-family:var(--mono);
+  font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:rgba(243,231,211,.52);
+  text-shadow:0 1px 8px rgba(0,0,0,.8); opacity:.8;
+}
+.scene-panel.eerie{box-shadow:0 0 0 1px rgba(142,124,195,.12), 0 20px 60px rgba(0,0,0,.35);}
+.scene-panel.eerie::before{background:radial-gradient(circle at 85% -10%, rgba(142,124,195,.18), transparent 48%);}
+
+.mystery-strip{
+  display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;
+}
+.mystery-chip{
+  font-family:var(--mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase;
+  padding:6px 8px; border-radius:999px; border:1px solid rgba(142,124,195,.28);
+  color:#C9BDEB; background:rgba(142,124,195,.08);
+}
+.glitch-note{
+  margin:12px 0 0; padding:10px 12px; border-left:2px solid #8E7CC3;
+  background:rgba(142,124,195,.07); font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.05em; color:#D8D0ED;
+}
+
+@media (max-width:520px){.scene-art{height:150px;margin:-2px -2px 18px;}}
+
+
+
+/* ============================= LIVE ISLAND SOCIAL MAP ============================= */
+.world-panel{
+  margin-bottom:18px;
+  background:linear-gradient(160deg,rgba(24,35,53,.96),rgba(24,15,34,.98));
+  border:1px solid var(--mist-strong); border-radius:18px; overflow:hidden;
+  box-shadow:0 16px 40px rgba(0,0,0,.24);
+}
+.world-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:17px 18px 12px;}
+.world-title{font-family:var(--serif);font-size:20px;font-weight:700;}
+.world-sub{font-size:11.5px;color:var(--sand-dim);margin-top:3px;line-height:1.45;}
+.live-pill{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#c9fff3;border:1px solid rgba(63,182,168,.35);background:rgba(63,182,168,.09);padding:6px 9px;border-radius:999px;white-space:nowrap;}
+.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--lagoon);margin-right:6px;box-shadow:0 0 0 0 rgba(63,182,168,.6);animation:livePulse 1.8s infinite;}
+@keyframes livePulse{60%{box-shadow:0 0 0 7px rgba(63,182,168,0)}100%{box-shadow:0 0 0 0 rgba(63,182,168,0)}}
+
+.island-map{
+  position:relative;height:390px;margin:0 14px 14px;border-radius:18px;overflow:hidden;
+  border:1px solid rgba(243,231,211,.13);
+  background:
+    radial-gradient(ellipse at 49% 51%,#7a8750 0 15%,#53683e 16% 31%,#3d5939 32% 43%,transparent 44%),
+    radial-gradient(ellipse at 48% 52%,#e4c98c 0 47%,transparent 48%),
+    radial-gradient(ellipse at 50% 50%,#4aa6a1 0 55%,#276777 70%,#193d59 100%);
+  isolation:isolate;
+}
+.island-map::before{content:'';position:absolute;inset:-20%;background:repeating-radial-gradient(ellipse at center,transparent 0 16px,rgba(255,255,255,.035) 18px 19px,transparent 21px 30px);opacity:.8;animation:waterMove 12s linear infinite;z-index:-1;}
+.island-map::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 28% 18%,rgba(255,222,153,.20),transparent 25%),linear-gradient(180deg,transparent 45%,rgba(9,18,30,.18));z-index:30;}
+.island-map.night{filter:saturate(.78) brightness(.74);box-shadow:inset 0 0 80px rgba(18,7,32,.48);}
+.island-map.storm{animation:mapStorm 4s ease-in-out infinite;}
+@keyframes waterMove{to{transform:rotate(2deg) scale(1.03)}}
+@keyframes mapStorm{0%,92%,100%{filter:brightness(.76)}94%{filter:brightness(1.22)}96%{filter:brightness(.66)}98%{filter:brightness(1.05)}}
+
+.map-path{position:absolute;border:1px dashed rgba(240,226,195,.22);border-radius:50%;pointer-events:none;z-index:1;}
+.map-path.p1{left:28%;top:26%;width:45%;height:50%;transform:rotate(-13deg)}
+.map-path.p2{left:38%;top:17%;width:27%;height:65%;transform:rotate(28deg)}
+.location-hotspot{position:absolute;transform:translate(-50%,-50%);z-index:5;background:rgba(25,20,29,.64);border:1px solid rgba(243,231,211,.20);border-radius:12px;padding:6px 8px;color:var(--sand);backdrop-filter:blur(4px);box-shadow:0 4px 12px rgba(0,0,0,.20);transition:.18s ease;}
+.location-hotspot:hover{border-color:var(--ember);background:rgba(33,21,48,.84);transform:translate(-50%,-50%) translateY(-2px)}
+.loc-icon{font-size:15px;line-height:1;display:block}.loc-name{display:block;font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.06em;margin-top:3px;white-space:nowrap;color:#f4e8d2}
+.location-hotspot.mystery{border-color:rgba(142,124,195,.48);box-shadow:0 0 18px rgba(142,124,195,.16)}
+.location-hotspot.locked{opacity:.34;filter:grayscale(.5)}
+
+.map-avatar{position:absolute;width:42px;height:50px;transform:translate(-50%,-50%);z-index:18;transition:left 2.25s cubic-bezier(.3,.8,.25,1),top 2.25s cubic-bezier(.3,.8,.25,1),transform .15s ease;cursor:pointer;text-align:center;filter:drop-shadow(0 5px 6px rgba(0,0,0,.32));}
+.map-avatar:hover{transform:translate(-50%,-50%) scale(1.12);z-index:25}.map-avatar .portrait{background:rgba(20,16,28,.45);border:2px solid rgba(255,255,255,.42)}
+.map-avatar-name{font-family:var(--mono);font-size:7.5px;background:rgba(17,12,22,.76);padding:2px 5px;border-radius:999px;display:inline-block;margin-top:1px;color:#fff;white-space:nowrap;}
+.map-avatar.walking .portrait{animation:walkBob .45s ease-in-out infinite alternate}@keyframes walkBob{to{transform:translateY(-3px) rotate(1deg)}}
+
+
+.map-bottom{display:grid;grid-template-columns:1.15fr .85fr;gap:10px;padding:0 14px 14px;}
+.observe-card,.social-feed{border:1px solid var(--mist);background:rgba(243,231,211,.035);border-radius:12px;padding:11px 12px;min-height:78px;}
+.observe-title,.feed-title{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--lagoon);margin-bottom:5px;}
+.observe-text{font-size:12px;line-height:1.5;color:var(--sand-dim)}
+.feed-line{font-size:11px;line-height:1.45;color:var(--sand-dim);padding:3px 0;border-bottom:1px solid rgba(243,231,211,.05)}.feed-line:last-child{border:0}
+.world-actions{display:flex;gap:8px;flex-wrap:wrap;padding:0 14px 14px;}
+.map-btn{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--mist-strong);background:rgba(243,231,211,.04);color:var(--sand-dim);border-radius:999px;padding:7px 10px}.map-btn:hover{border-color:var(--ember);color:var(--ember)}
+@media(max-width:680px){.island-map{height:330px}.map-bottom{grid-template-columns:1fr}.location-hotspot{padding:5px}.loc-name{display:none}.world-head{align-items:flex-start}.map-avatar{width:36px}.map-avatar .portrait{transform:scale(.88)}}
+
+/* ---------- Toasts ---------- */
+#toast-stack{ position:fixed; bottom:20px; right:20px; z-index:60; display:flex; flex-direction:column; gap:8px; align-items:flex-end; max-width:280px; }
+.toast{
+  font-family:var(--serif); font-style:italic; font-size:13.5px;
+  background:var(--twilight-3); border:1px solid var(--mist-strong);
+  color:var(--sand); padding:10px 16px; border-radius:10px 10px 2px 10px;
+  box-shadow:0 8px 22px rgba(0,0,0,0.35);
+  animation:toastIn .3s ease, toastOut .3s ease 3.4s forwards;
+}
+@keyframes toastIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+@keyframes toastOut{to{opacity:0; transform:translateY(-6px);}}
+
+/* ---------- Modal ---------- */
+.modal-backdrop{ position:fixed; inset:0; background:rgba(10,6,16,0.65); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; z-index:80; padding:20px; }
+.modal{ background:var(--twilight-2); border:1px solid var(--mist-strong); border-radius:16px; max-width:420px; width:100%; padding:26px; }
+.modal-head{display:flex; gap:14px; align-items:center; margin-bottom:16px;}
+.modal-head .name{font-family:var(--serif); font-weight:700; font-size:20px;}
+.modal-head .role{font-family:var(--mono); font-size:11px; color:var(--sand-dim); text-transform:uppercase; letter-spacing:.06em;}
+.stat-row{display:flex; align-items:center; gap:10px; margin-bottom:9px;}
+.stat-label{width:92px; font-size:11.5px; color:var(--sand-dim); font-family:var(--mono); flex-shrink:0;}
+.stat-track{flex:1; height:6px; background:rgba(255,255,255,0.07); border-radius:4px; position:relative; overflow:hidden;}
+.stat-fill{position:absolute; top:0; bottom:0; border-radius:4px;}
+.modal-trait{font-size:13px; line-height:1.6; color:var(--sand-dim); margin-top:14px; padding-top:14px; border-top:1px solid var(--mist);}
+.modal-close-row{margin-top:20px; text-align:right;}
+
+/* ---------- Journal ---------- */
+.journal-backdrop{position:fixed; inset:0; background:rgba(10,6,16,0.6); z-index:70; display:flex; justify-content:flex-end;}
+.journal-drawer{ width:min(420px,92vw); height:100%; background:var(--twilight-2); border-left:1px solid var(--mist-strong); padding:26px; overflow-y:auto; }
+.journal-entry{padding:14px 0; border-bottom:1px solid var(--mist);}
+.journal-entry .jday{font-family:var(--mono); font-size:10.5px; color:var(--lagoon); text-transform:uppercase; letter-spacing:.08em;}
+.journal-entry .jtext{font-size:13px; line-height:1.6; color:var(--sand-dim); margin-top:5px;}
+.journal-entry .jchoice{font-size:13px; color:var(--ember); margin-top:6px; font-weight:600;}
+
+
+/* ---------- Death / game over ---------- */
+.death-screen{min-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding:30px 18px}
+.death-card{max-width:620px;background:linear-gradient(160deg,rgba(83,24,31,.96),rgba(24,12,20,.98));border:1px solid rgba(232,101,79,.55);border-radius:22px;padding:34px;box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.death-title{font-family:var(--serif);font-size:clamp(42px,8vw,72px);font-weight:700;color:#ffd6cf;line-height:1}
+.death-reason{font-family:var(--serif);font-size:19px;line-height:1.6;margin-top:16px;color:var(--sand)}
+.death-detail{font-size:13.5px;line-height:1.7;color:var(--sand-dim);margin-top:12px}
+.risk-tag{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#ffd4cd;border:1px solid rgba(232,101,79,.5);background:rgba(232,101,79,.12);border-radius:999px;padding:3px 6px;vertical-align:1px}
+
+/* ---------- Ending ---------- */
+.ending-screen{ text-align:center; padding:40px 20px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+.archetype-card{
+  background:linear-gradient(160deg, var(--twilight-3), var(--twilight-2));
+  border:1px solid var(--ember-dim); border-radius:20px; padding:36px 34px; max-width:480px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.4);
+}
+.archetype-name{
+  font-family:var(--serif); font-weight:700; font-size:38px;
+  background:linear-gradient(180deg,#FCEFD2, var(--ember));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  margin:6px 0 14px;
+}
+.ending-cast{display:flex; justify-content:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;}
+.ending-summary{max-width:560px; font-size:14.5px; line-height:1.8; color:var(--sand-dim); text-align:left;}
+.ending-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:10px; text-align:left; max-width:560px; width:100%;}
+.ending-stat{background:var(--mist); border-radius:10px; padding:14px; display:flex; gap:10px; align-items:center;}
+.ending-stat .k{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--lagoon);}
+.ending-stat .v{font-family:var(--serif); font-weight:600; font-size:15px; margin-top:2px;}
+
+
+/* ---------- Mini games + run progress ---------- */
+.story-progress{margin-top:10px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--sand-dim)}
+.story-progress-track{flex:1;height:7px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.story-progress-fill{height:100%;background:linear-gradient(90deg,var(--lagoon),var(--ember));border-radius:inherit;transition:width .35s ease}
+.story-progress strong{color:var(--ember);white-space:nowrap}
+.minigame-backdrop{position:fixed;inset:0;z-index:120;background:rgba(8,5,13,.86);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px}
+.minigame-card{width:min(620px,96vw);background:linear-gradient(160deg,#2E1D45,#17101F);border:1px solid var(--ember-dim);border-radius:20px;padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.6);position:relative;overflow:hidden}
+.minigame-card::before{content:'';position:absolute;inset:-30%;background:radial-gradient(circle at 70% 15%,rgba(63,182,168,.12),transparent 35%);pointer-events:none}
+.minigame-title{font-family:var(--serif);font-size:29px;font-weight:700;margin:4px 0 5px;position:relative}
+.minigame-desc{color:var(--sand-dim);font-size:13.5px;line-height:1.55;position:relative}
+.minigame-hud{display:flex;justify-content:space-between;gap:12px;margin:16px 0 12px;font-family:var(--mono);font-size:11px;color:var(--lagoon);text-transform:uppercase;letter-spacing:.06em;position:relative}
+.minigame-stage{min-height:260px;border:1px solid var(--mist-strong);border-radius:16px;background:rgba(5,8,14,.45);position:relative;overflow:hidden;padding:18px}
+.mini-item{position:absolute;border:1px solid rgba(255,255,255,.18);background:rgba(243,231,211,.08);border-radius:12px;color:var(--sand);font-size:28px;width:58px;height:58px;display:grid;place-items:center;cursor:pointer;transition:transform .12s ease,opacity .15s ease}
+.mini-item:hover{transform:scale(1.08)} .mini-item.found{opacity:0;transform:scale(.4);pointer-events:none}
+.drop{position:absolute;top:-28px;font-size:26px;cursor:pointer;animation:dropFall linear forwards;user-select:none}@keyframes dropFall{to{top:245px;opacity:.2}}
+.brace-zone{position:absolute;left:12%;right:12%;top:112px;height:34px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid var(--mist-strong)}
+.brace-sweet{position:absolute;left:42%;width:18%;top:0;bottom:0;background:rgba(63,182,168,.25);border-left:1px solid var(--lagoon);border-right:1px solid var(--lagoon)}
+.brace-marker{position:absolute;top:-8px;width:12px;height:50px;border-radius:8px;background:var(--ember);box-shadow:0 0 18px rgba(233,180,76,.45)}
+.lock-grid{display:grid;grid-template-columns:repeat(3,82px);gap:12px;justify-content:center;align-content:center;height:225px}.lock-pad{height:82px;border-radius:18px;border:1px solid var(--mist-strong);background:rgba(255,255,255,.05);color:var(--sand);font-size:28px;transition:.15s}.lock-pad.flash{background:rgba(233,180,76,.5);box-shadow:0 0 24px rgba(233,180,76,.32)}.lock-pad.good{background:rgba(63,182,168,.3)}
+.fire-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;height:225px;gap:14px}.fire-emoji{font-size:76px;filter:grayscale(1);opacity:.35;transition:.25s}.fire-emoji.lit{filter:none;opacity:1;transform:scale(1.08);text-shadow:0 0 28px rgba(233,180,76,.5)}.ember-row{display:flex;gap:12px}.ember-btn{width:62px;height:62px;border-radius:50%;background:rgba(232,101,79,.14);border:1px solid rgba(232,101,79,.5);font-size:24px}.ember-btn.active{background:rgba(233,180,76,.28);box-shadow:0 0 20px rgba(233,180,76,.36)}
+.minigame-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;position:relative}.mini-skip{background:transparent;color:var(--sand-dim);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border:1px dashed var(--mist-strong);padding:9px 12px;border-radius:9px}.mini-result{font-family:var(--serif);font-style:italic;color:var(--sand);font-size:14px}
+.run-complete-badge{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ember);border:1px solid var(--ember-dim);border-radius:999px;padding:8px 13px;background:rgba(233,180,76,.08)}
+
+.fight-stage{height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
+.fight-meter{width:min(420px,90%);height:24px;border:1px solid var(--mist-strong);border-radius:999px;position:relative;background:rgba(255,255,255,.06);overflow:hidden}
+.fight-safe{position:absolute;left:40%;width:20%;top:0;bottom:0;background:rgba(63,182,168,.28);border-left:1px solid var(--lagoon);border-right:1px solid var(--lagoon)}
+.fight-marker{position:absolute;top:-5px;width:13px;height:34px;border-radius:8px;background:var(--ember);box-shadow:0 0 16px rgba(233,180,76,.42)}
+.fight-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.fight-action{padding:12px 16px;border-radius:12px;border:1px solid var(--mist-strong);background:rgba(243,231,211,.06);color:var(--sand);font-weight:700}.fight-action:hover{border-color:var(--ember)}
+.tension-pill{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.07em;border:1px solid rgba(232,101,79,.38);background:rgba(232,101,79,.08);padding:7px 10px;border-radius:999px;color:#ffd7cf;white-space:nowrap}
+.survival-hud{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.survival-pill{font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--mist);background:rgba(243,231,211,.035);padding:5px 8px;border-radius:999px;color:var(--sand-dim)}.survival-pill strong{color:var(--sand);font-size:10px}.survival-pill.low{border-color:rgba(232,101,79,.45);color:#f2b5aa}.survival-pill.good{border-color:rgba(63,182,168,.35)}
+
+@media (max-width:520px){
+  .scene-panel{padding:20px;}
+  .ending-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast-stack"></div>
+
+<script>
+/* ============================= DATA ============================= */
+
+const CHARS = {
+  nia:    {id:'nia', name:'Nia Osei', role:'Aspiring chef, 19', color:'#E9B44C',
+    trait:'Warm and generous to a fault — always feeding people, always noticing what others need. Quietly keeps score of who has and hasn\'t shown up for her.'},
+  malik:  {id:'malik', name:'Malik Torres', role:'Former lifeguard, 21', color:'#3FB6A8',
+    trait:'A natural leader who takes charge without being asked. Underneath the confidence, he\'s terrified of being seen as all muscle, no plan.'},
+  simone: {id:'simone', name:'Simone Delacroix-Reyes', role:'Pre-law student, 20', color:'#E8654F',
+    trait:'Sharp-tongued, guarded, allergic to vulnerability. Loyal for life once trust is actually earned — which takes a while.'},
+  julian: {id:'julian', name:'Julian Whitfield', role:'Musician, 22', color:'#B98A33',
+    trait:'Charming, easygoing, uses humor to dodge anything that feels too real. More anxious underneath than he lets on.'},
+  ama:    {id:'ama', name:'Ama Boateng', role:'Science-fair kid, 18', color:'#8E7CC3',
+    trait:'The youngest by a few years and hates being treated like it. Notices things — patterns, inconsistencies — that everyone else misses.'},
+  priya:  {id:'priya', name:'Priya Chandrasekaran', role:'Content creator, 23', color:'#D97BAE',
+    trait:'Image-conscious and a little jealousy-prone, but fiercely loyal to whoever she decides is actually in her corner.'},
+  dez:    {id:'dez', name:'Desmond "Dez" Okafor', role:'Outdoorsman, 24', color:'#6FA96B',
+    trait:'A man of very few words. Trust is nearly impossible to earn and total once you have it. Carries something he doesn\'t talk about.'}
+};
+const CHAR_VISUALS = {
+  nia:    {skin:'#9A5B32', hair:'#20140F'},
+  malik:  {skin:'#7A4A28', hair:'#1B1210'},
+  simone: {skin:'#E3AE76', hair:'#0F0B10'},
+  julian: {skin:'#C98953', hair:'#3B2A1C'},
+  ama:    {skin:'#6B4226', hair:'#150F10'},
+  priya:  {skin:'#D9A066', hair:'#2A1710', hair2:'#161016'},
+  dez:    {skin:'#5E3A20', hair:'#161010'}
+};
+const CHAR_ORDER = ['nia','malik','simone','julian','ama','priya','dez'];
+const STAT_KEYS = ['trust','loyalty','respect','affection','suspicion','resentment','jealousy','fear'];
+const POSITIVE_STATS = ['trust','loyalty','respect','affection'];
+const NEGATIVE_STATS = ['suspicion','resentment','jealousy','fear'];
+
+const ARCHETYPES = {
+  leader:     {name:'The Leader', blurb:'You didn\'t wait to be asked. When things fell apart, you were the one people looked to — for better or worse.'},
+  diplomat:   {name:'The Diplomat', blurb:'You navigated every fault line with care, choosing honesty and steadiness over easy answers.'},
+  strategist: {name:'The Strategist', blurb:'You played the long game — gathering information, weighing consequences, rarely acting on impulse.'},
+  protector:  {name:'The Protector', blurb:'Whoever was struggling, you noticed first. Your loyalty was never in question, even when it cost you.'},
+  peacemaker: {name:'The Peacemaker', blurb:'You kept looking for the third option — the one where nobody had to lose. Sometimes it worked.'},
+  wildcard:   {name:'The Wildcard', blurb:'Nobody could quite predict you — including, maybe, yourself. You followed your gut, consequences and all.'},
+  loneWolf:   {name:'The Lone Wolf', blurb:'You kept your circle small and your own counsel closer. The island learned to read your silences.'}
+};
+
+const SLOT_ORDER = ['morning','afternoon','evening','night'];
+const SLOT_LABEL = {morning:'Morning', afternoon:'Afternoon', evening:'Evening', night:'Night'};
+const SEQUENCE = [];
+for(let d=1; d<=3; d++){ for(const s of SLOT_ORDER){ SEQUENCE.push(`d${d}-${s}`); } }
+
+
+const STORY_CHALLENGES = {
+  'd1-morning': {id:'salvage', title:'Salvage Sweep', desc:'The tide is pulling the wreckage apart. Grab four useful supplies before they disappear.'},
+  'd1-afternoon': {id:'tidepool', title:'Tidepool Search', desc:'You and Ama search the tidepools for anything useful — and anything that should not be here.'},
+  'd1-evening': {id:'campbuild', title:'Build the First Shelter', desc:'Night is coming fast. Grab the right materials and get a basic shelter standing before the temperature drops.'},
+  'd2-morning': {id:'water', title:'Rain Catch', desc:'The clouds finally open. Catch enough clean drops before the shower passes.'},
+  'd2-afternoon': {id:'route', title:'Ridge Run', desc:'Pick a safe route before the light fades.'},
+  'd2-evening': {id:'forage', title:'Last-Light Forage', desc:'Food is running low. Collect safe food before darkness closes in — and avoid anything that could make the group sick.'},
+  'd2-night': {id:'clues', title:'Plate Investigation', desc:'Study the metal plate and uncover three details before the group loses patience.'},
+  'd3-morning': {id:'storm', title:'Brace the Shelter', desc:'Time your braces while the wind surges. Three strong holds will keep camp standing.'},
+  'd3-evening': {id:'lock', title:'The Island Lock', desc:'Memorize the glowing sequence and repeat it to open the observation room.'},
+  'd3-night': {id:'signal', title:'Signal Fire', desc:'Feed the fire in the right rhythm. This is the last thing standing between the group and the ship.'},
+  'fight-camp': {id:'fight-camp', title:'Camp Showdown', desc:'The argument turns physical. Time three clean interventions to stop the fight before supplies get destroyed.'},
+  'fight-rival': {id:'fight-rival', title:'Supply Crate Scuffle', desc:'Your biggest rival blocks the supply crate. Defend your space and keep the crate from being kicked into the surf.'},
+  'fight-final': {id:'fight-final', title:'Beach Brawl', desc:'Panic breaks out while the signal fire is being built. Keep the group together long enough to finish the rescue signal.'}
+};
+
+function getStoryChallenge(key){
+  const base=STORY_CHALLENGES[key];
+  if(!base) return null;
+  // This challenge only happens if the player actually promised Ama.
+  if(key==='d1-afternoon' && !state.flags.promised_ama_exploration) return null;
+  if(key==='d2-afternoon'){
+    if(state.flags.sided_priya) return {...base,title:'Fortify Camp',desc:'Priya puts you in charge of reinforcing the weakest parts of camp. Choose the safest order before the wind picks up.'};
+    if(state.flags.proposed_compromise) return {...base,title:'Split Duties',desc:'Your compromise only works if you can coordinate the ridge team and camp team. Choose the route that keeps both groups covered.'};
+    return {...base,title:'Ridge Run',desc:'Malik trusts you to help lead the ridge team. Choose the safest route before the light fades.'};
+  }
+  if(key==='d2-night'){
+    if(state.flags.kept_plate_secret) return {...base,title:'Secret Plate Decode',desc:'Only you and Dez know about the plate. Find the three details that could explain the symbol without alerting camp.'};
+    if(state.flags.ama_has_plate) return {...base,title:'Decode It With Ama',desc:'Ama starts spotting patterns immediately. Help her identify the three details that matter most.'};
+    return {...base,title:'Group Evidence Check',desc:'Everyone has an opinion about the plate. Find the three concrete details before the argument takes over.'};
+  }
+  return base;
+}
+
+
+
+/* ============================= LIVE ISLAND SOCIAL SIM ============================= */
+const ISLAND_LOCATIONS = {
+  camp:      {name:'Camp', icon:'⛺', x:48, y:57, desc:'The social center. Plans, meals, gossip, and arguments tend to collect here.'},
+  firepit:   {name:'Firepit', icon:'🔥', x:58, y:67, desc:'Quiet at first. Much less quiet after sunset.'},
+  beach:     {name:'Beach', icon:'🏖️', x:27, y:68, desc:'Open sand, wreckage debris, and enough distance for private conversations.'},
+  wreckage:  {name:'Wreckage', icon:'✈️', x:22, y:42, desc:'Supplies, scraps, and pieces of the crash nobody likes looking at for long.'},
+  tidepools: {name:'Tidepools', icon:'🐚', x:70, y:72, desc:'Calmer water, strange little discoveries, and an easy place to lose track of time.'},
+  cliff:     {name:'Lookout', icon:'⛰️', x:73, y:36, desc:'The best view of the horizon — and the easiest place to notice lights nobody else sees.'},
+  jungle:    {name:'Jungle', icon:'🌿', x:49, y:30, desc:'Dense paths, old trees, and noises that always seem one step farther in.'},
+  ruins:     {name:'Hidden Site', icon:'◈', x:58, y:22, desc:'Something artificial sits beneath the green.', mystery:true}
+};
+const MAP_START = {nia:'camp',malik:'wreckage',simone:'beach',julian:'camp',ama:'tidepools',priya:'beach',dez:'jungle'};
+const MAP_NEIGHBORS = {
+  camp:['firepit','beach','wreckage','jungle','tidepools'], firepit:['camp','beach','tidepools'], beach:['camp','firepit','wreckage','tidepools'],
+  wreckage:['beach','camp','jungle'], tidepools:['beach','camp','firepit','cliff'], cliff:['tidepools','jungle','ruins'], jungle:['camp','wreckage','cliff','ruins'], ruins:['jungle','cliff']
+};
+const SOCIAL_LINES = {
+  friendly:[
+    ['laugh','{a} gets {b} laughing hard enough to forget the island for a minute.'],
+    ['share','{a} quietly saves a better portion of food for {b}.'],
+    ['talk','{a} and {b} lean close, trading a story nobody else can hear.'],
+    ['help','{a} notices {b} struggling and helps without making a big deal of it.']
+  ],
+  neutral:[
+    ['chat','{a} and {b} make awkward small talk, then somehow keep talking.'],
+    ['task','{a} and {b} end up working beside each other in cautious silence.'],
+    ['notice','{a} catches {b} staring toward the trees. Neither says anything.'],
+    ['question','{a} asks {b} a question that sounds casual but definitely is not.']
+  ],
+  drama:[
+    ['argue','{a} and {b} start arguing. Everyone nearby suddenly gets very interested.'],
+    ['walkoff','{b} turns away mid-conversation and {a} looks stunned.'],
+    ['accuse','{a} points out something {b} said earlier that does not add up.'],
+    ['shade','{a} says something sweet enough to sound polite and sharp enough to land.']
+  ],
+  eerie:[
+    ['freeze','{a} and {b} both stop talking at the exact same time and look toward the jungle.'],
+    ['sound','A metallic tapping comes from somewhere near {a} and {b}. It stops when they listen for it.'],
+    ['shadow','{a} swears somebody just crossed the path behind {b}. Nobody is there.']
+  ]
+};
+let socialSimTimer=null;
+
+/* ============================= PORTRAITS ============================= */
+function composite(state, id){
+  const s = state.stats[id];
+  let v = 0;
+  for(const k of POSITIVE_STATS) v += s[k];
+  for(const k of NEGATIVE_STATS) v -= s[k];
+  return v;
+}
+
+function drawPortrait(id, size){
+  const c = CHARS[id];
+  const v = CHAR_VISUALS[id];
+  const comp = (typeof state !== 'undefined' && state) ? composite(state, id) : 0;
+  const mood = comp > 60 ? 'happy' : comp < -60 ? 'upset' : 'neutral';
+  const mouth = mood==='happy' ? 'M36,68 Q50,79 64,68' : mood==='upset' ? 'M36,74 Q50,63 64,74' : 'M38,70 L62,70';
+  const browL = mood==='upset' ? 'M28,45 L42,50' : mood==='happy' ? 'M28,49 L42,46' : 'M28,47 L42,47';
+  const browR = mood==='upset' ? 'M72,45 L58,50' : mood==='happy' ? 'M72,49 L58,46' : 'M72,47 L58,47';
+
+  let hairBack = '', extra = '';
+  switch(id){
+    case 'nia':
+      hairBack = `<circle cx="50" cy="46" r="33" fill="${v.hair}"/>`;
+      break;
+    case 'malik':
+      hairBack = `<path d="M20,44 Q50,14 80,44 L80,36 Q50,10 20,36 Z" fill="${v.hair}"/>`;
+      break;
+    case 'simone':
+      hairBack = `<path d="M18,52 Q16,16 50,16 Q84,16 82,52 L82,70 Q70,60 70,50 Q70,32 50,32 Q30,32 30,50 Q30,60 18,70 Z" fill="${v.hair}"/>`;
+      break;
+    case 'julian':
+      hairBack = `<path d="M18,46 Q50,10 82,46 L82,32 Q50,2 18,32 Z" fill="${c.color}"/><path d="M18,44 L25,53 L17,52 Z" fill="${v.hair}"/><path d="M82,44 L75,53 L83,52 Z" fill="${v.hair}"/>`;
+      break;
+    case 'ama':
+      hairBack = `<path d="M20,42 Q50,12 80,42 L80,34 Q50,8 20,34 Z" fill="${v.hair}"/>
+        <rect x="13" y="40" width="6" height="34" rx="3" fill="${v.hair}" transform="rotate(8 16 40)"/>
+        <circle cx="15" cy="76" r="3.5" fill="${c.color}"/>
+        <rect x="81" y="40" width="6" height="34" rx="3" fill="${v.hair}" transform="rotate(-8 84 40)"/>
+        <circle cx="85" cy="76" r="3.5" fill="${c.color}"/>`;
+      extra = `<circle cx="40" cy="57" r="8" fill="none" stroke="#1A1210" stroke-width="2.5"/><circle cx="60" cy="57" r="8" fill="none" stroke="#1A1210" stroke-width="2.5"/><line x1="48" y1="57" x2="52" y2="57" stroke="#1A1210" stroke-width="2.5"/>`;
+      break;
+    case 'priya':
+      hairBack = `<path d="M16,50 Q14,14 50,14 Q86,14 84,50 Q90,80 78,94 Q76,60 68,50 Q68,30 50,30 Q32,30 32,50 Q24,60 22,94 Q10,80 16,50 Z" fill="${v.hair}"/>`;
+      extra = `<ellipse cx="42" cy="23" rx="9" ry="5" fill="${v.hair2}" opacity="0.9"/><ellipse cx="58" cy="23" rx="9" ry="5" fill="${v.hair2}" opacity="0.9"/><rect x="49" y="21" width="4" height="4" fill="${v.hair2}" opacity="0.9"/>`;
+      break;
+    case 'dez':
+      hairBack = `<path d="M22,44 Q50,18 78,44 L78,36 Q50,14 22,36 Z" fill="${v.hair}"/>`;
+      extra = `<path d="M32,66 Q50,90 68,66 Q68,80 50,84 Q32,80 32,66 Z" fill="${v.hair}"/>`;
+      break;
+  }
+
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="display:block;">
+    <circle cx="50" cy="50" r="49" fill="${c.color}" opacity="0.16"/>
+    <path d="M18,96 Q50,74 82,96 L82,104 L18,104 Z" fill="${c.color}"/>
+    ${hairBack}
+    <ellipse cx="50" cy="58" rx="25" ry="28" fill="${v.skin}"/>
+    <ellipse cx="40" cy="57" rx="3.6" ry="4.4" fill="#1A1210"/>
+    <ellipse cx="60" cy="57" rx="3.6" ry="4.4" fill="#1A1210"/>
+    <path d="${browL}" stroke="${v.hair}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="${browR}" stroke="${v.hair}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="${mouth}" stroke="#3A241A" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    ${extra}
+  </svg>`;
+}
+function portraitHTML(id, size, withBorder){
+  return `<span class="portrait" style="width:${size}px;height:${size}px;${withBorder?'border:2px solid var(--mist-strong);':''}">${drawPortrait(id,size)}</span>`;
+}
+
+/* ============================= EVENTS ============================= */
+function lowestComposite(state, exclude=[]){
+  let best=null, bestScore=Infinity;
+  for(const id of CHAR_ORDER){
+    if(exclude.includes(id)) continue;
+    const c = composite(state, id);
+    if(c < bestScore){ bestScore=c; best=id; }
+  }
+  return best;
+}
+
+const EVENTS = {
+
+'d1-morning': {
+  title:'First Light',
+  beat:"The wreckage still smokes down the shoreline. Then Ama notices a line of wet footprints leading from the water into the jungle — even though everyone swears they woke up on the beach. Malik wants to search the wreckage before the tide takes it.",
+  involved:['malik','ama'],
+  choices:[
+    {text:"Search the wreckage with Malik", tag:['leader'], effects:{malik:{loyalty:10,respect:10}}, flags:{helped_malik_wreckage:true}, survival:{food:1,shelter:1}},
+    {text:"Sit with Ama, who's shaking and won't stop apologizing", tag:['protector'], effects:{ama:{affection:15,trust:10}}, flags:{comforted_ama:true}},
+    {text:"Walk the treeline alone to get your bearings", tag:['loneWolf'], effects:{malik:{trust:-5}, priya:{trust:-5}}, flags:{scouted_alone:true}, survival:{signal:1}}
+  ]
+},
+'d1-afternoon': {
+  title:"Ama's Request",
+  beat:"Ama finds you once things have quieted down. She's still rattled, but she asks — quietly, like she's expecting a no — whether you'll explore the tidepools with her tomorrow morning. Just the two of you.",
+  involved:['ama'],
+  choices:[
+    {text:"Promise her you will", tag:['protector'], effects:{ama:{affection:10,trust:10}}, flags:{promised_ama_exploration:true}},
+    {text:"Say you can't promise anything right now, but you'll try", tag:['diplomat'], effects:{ama:{trust:5,respect:5}}, flags:{ama_maybe:true}},
+    {text:"Deflect with a joke to lighten the mood", tag:['wildcard'], effects:{ama:{affection:5,trust:-5}}, flags:{ama_deflected:true}}
+  ]
+},
+'d1-evening': {
+  title:'Overheard by the Fire',
+  beat:"Passing behind the driftwood pile, you catch Simone's voice — low, furious — and Julian's, pleading. They both go silent the instant they sense you're there.",
+  involved:['simone','julian'],
+  choices:[
+    {text:"Keep walking like you heard nothing", tag:['strategist'], effects:{simone:{suspicion:5}}, flags:{overheard_simone_julian:true}},
+    {text:"Ask them directly if everything's okay", tag:['wildcard'], effects:{julian:{respect:10}, simone:{suspicion:15,resentment:5}}, flags:{confronted_simone_julian:true}},
+    {text:"Walk away and give them space", tag:['diplomat'], effects:{simone:{trust:10}, julian:{trust:5}}, flags:{gave_simone_space:true}}
+  ]
+},
+'d1-night': {
+  title:'Confessional Under Stars',
+  beat:"Dez sits apart from the fire, carving the same looping symbol over and over into driftwood. When you ask where he learned it, his hand stops. He says he has no idea — and looks genuinely unsettled.",
+  involved:['dez'],
+  choices:[
+    {text:"Ask him what he's carving", tag:['diplomat'], effects:{dez:{trust:10,respect:5}}},
+    {text:"Share something you're actually scared of", tag:['protector'], effects:{dez:{affection:15,trust:15}}},
+    {text:"Sit in silence next to him without pushing", tag:['loneWolf'], effects:{dez:{respect:15,trust:10}}}
+  ]
+},
+
+'d2-morning': {
+  title:'The Water Problem',
+  beat:"The rain catch only filled one bottle overnight — and two sealed food packets are missing. Priya thinks somebody hid them. Malik wants everyone searched. Nia quietly offers her share while Simone says searching people will turn camp into a courtroom.",
+  involved:['priya','malik','nia'],
+  choices:[
+    {text:"Give the bottle to Priya", tag:['protector'], effects:{priya:{affection:15,trust:10}, nia:{respect:5}, malik:{resentment:5}}, survival:{water:-1}},
+    {text:"Back Malik's plan to ration and wait", tag:['leader'], effects:{malik:{trust:15,respect:10}, priya:{resentment:10}}, survival:{water:1}},
+    {text:"Insist Nia — who's quietly going without — take a share", tag:['peacemaker'], effects:{nia:{affection:20,trust:15,respect:10}, priya:{respect:5}}, survival:{water:-1}}
+  ]
+},
+'d2-afternoon': {
+  title:'Leadership Clash',
+  beat:"The missing supplies turn the camp against itself. Malik grabs the ration bag before Priya can move it. Priya shoves his arm away. He steps forward. She does too. The whole camp goes quiet because this is no longer just an argument.",
+  involved:['malik','priya'],
+  choices:[
+    {text:"Stand beside Malik and tell Priya to back off", tag:['leader'], effects:{malik:{loyalty:20,trust:15}, priya:{resentment:25,trust:-15}}, flags:{sided_malik:true}, survival:{signal:2}, tension:22},
+    {text:"Stand beside Priya and tell Malik he is not in charge", tag:['strategist'], effects:{priya:{loyalty:20,trust:15}, malik:{resentment:25,trust:-15}}, flags:{sided_priya:true}, survival:{shelter:2}, tension:22},
+    {text:"Get between them before somebody swings", tag:['diplomat'], effects:{malik:{respect:10,trust:5}, priya:{respect:10,trust:5}}, flags:{proposed_compromise:true,intervened_first_fight:true}, survival:{signal:1,shelter:1}, tension:-8}
+  ]
+},
+'d2-evening-secret': {
+  title:'The Secret You\'re Holding',
+  beat:"You've pieced together enough: Simone and Julian knew each other before the island — but not romantically. They both received the same anonymous invitation promising a paid 'weekend challenge,' and each thought they were the only one invited. Simone catches you looking at her differently and knows why.",
+  involved:['simone','julian'],
+  choices:[
+    {text:"Tell her plainly that you know, and it's not your business unless she wants it to be", tag:['diplomat'], effects:{simone:{trust:20,respect:15,resentment:-10}}},
+    {text:"Let it slip to Priya in confidence — she loves knowing things", tag:['wildcard'], effects:{priya:{trust:10,affection:5}}, flags:{told_priya_secret:true}},
+    {text:"Say nothing, to anyone, ever", tag:['loneWolf'], effects:{simone:{trust:5}}}
+  ]
+},
+'d2-evening-karaoke': {
+  title:'Camp Karaoke',
+  beat:"Julian finds a bent bit of pipe that \"kind of\" works as a kazoo, and suddenly it's a full talent show by firelight — terrible, and wonderful.",
+  involved:['julian','dez'],
+  choices:[
+    {text:"Get up and make a fool of yourself", tag:['wildcard'], effects:{all:{affection:8}}},
+    {text:"Cheer everyone else on from the sidelines", tag:['diplomat'], effects:{all:{respect:5}}},
+    {text:"Sit with Dez, who's watching from the edge, clearly left out", tag:['protector'], effects:{dez:{affection:15,trust:10}}}
+  ]
+},
+'d2-night': {
+  title:'Strange Discovery',
+  beat:"Dez waves you over to a banyan tree. Half-buried beneath the roots is a rusted metal plate stamped with the exact symbol he carved last night. Under it: eight sets of initials. One set matches yours.",
+  involved:['dez','ama'],
+  choices:[
+    {text:"Tell the whole group immediately", tag:['leader'], effects:{all:{trust:5}, ama:{trust:10}}, flags:{revealed_plate_group:true}},
+    {text:"Keep it between you and Dez for now", tag:['strategist'], effects:{dez:{trust:20,loyalty:15}}, flags:{kept_plate_secret:true}},
+    {text:"Bring it to Ama specifically — she'll know what to make of it", tag:['strategist'], effects:{ama:{trust:20,affection:10,respect:10}, dez:{resentment:5}}, flags:{ama_has_plate:true}}
+  ]
+},
+
+'d3-morning': {
+  title:'Storm Warning',
+  beat:"The sky turns bruise-dark. A hard gust peels sand off the dune and exposes the corner of a concrete stairwell that absolutely was not visible yesterday. Before the storm hits, you only have time for one priority.",
+  involved:[],
+  choices:[
+    {text:"Reinforce the shelter with whoever's around", tag:['leader'], effects:{all:{trust:8}}, survival:{shelter:2}},
+    {text:"Make the last supply run to the wreck — alone", tag:['strategist'], effects:{all:{respect:6}}, survival:{food:1,shelter:1}, risk:'HIGH RISK', lethal:'storm_wreck'},
+    {text:"Check on the person who's been struggling most", tag:['protector'], effects:(state)=>{
+        const target = lowestComposite(state);
+        return {[target]:{affection:20,trust:15}};
+      }}
+  ]
+},
+'d3-afternoon-promise': {
+  title:'Ama Confronts You',
+  beat:"Ama finds you alone before the storm fully breaks. \"You said we'd go to the tidepools. You promised.\" Her voice isn't angry — just tired in a way that's worse than angry.",
+  involved:['ama'],
+  choices:[
+    {text:"Apologize honestly — admit you lost track of time in the chaos", tag:['diplomat'], effects:{ama:{trust:10,respect:10,affection:-5}}},
+    {text:"Get defensive — point out everything else that's been going on", tag:['wildcard'], effects:{ama:{trust:-20,resentment:20,affection:-15}}},
+    {text:"Promise to make it right before rescue comes, and mean it", tag:['protector'], effects:{ama:{trust:15}}, flags:{repay_ama:true}}
+  ]
+},
+'d3-afternoon-generic': {
+  title:'Supply Crate Standoff',
+  beat:null,
+  involved:[],
+  choices:[
+    {text:"Stand your ground and refuse to give up the supplies", tag:['wildcard'], effects:(state)=>{const t=state._d3target; return {[t]:{trust:-10,resentment:25,respect:5}};}, flags:{stood_ground_rival:true}, tension:18},
+    {text:"Call the rest of camp over so nobody can twist what happened", tag:['leader'], effects:(state)=>{const t=state._d3target; return {[t]:{suspicion:10,resentment:10}};}, flags:{called_group_rival:true}, tension:8},
+    {text:"Split the supplies and end it before it becomes another fight", tag:['diplomat'], effects:(state)=>{const t=state._d3target; return {[t]:{trust:8,respect:8,resentment:-8}};}, flags:{split_supplies_rival:true}, survival:{food:-1}, tension:-12}
+  ]
+},
+'d3-evening': {
+  title:'The Truth of the Island',
+  beat:null,
+  involved:['ama','dez'],
+  choices:[
+    {text:"Push the group to keep investigating before rescue comes", tag:['wildcard'], effects:{ama:{affection:10}}, flags:{mystery_push:true}, survival:{signal:-1}},
+    {text:"Focus everyone on rescue signals — let the mystery wait", tag:['leader'], effects:{malik:{respect:10}}, flags:{mystery_wait:true}, survival:{signal:2}},
+    {text:"Quietly go investigate the underground site alone tonight", tag:['loneWolf'], effects:{}, flags:{mystery_alone:true}, survival:{signal:-1}, risk:'HIGH RISK', lethal:'ruins_alone'}
+  ]
+},
+'d3-night': {
+  title:'Signal Fire',
+  beat:"A light blinks on the horizon in a three-short, one-long pattern — the same pattern Ama found scratched beside the metal plate. Then an old radio from the wreck crackles to life and says your group’s first names before anyone has made contact.",
+  involved:[],
+  choices:[
+    {text:"Lead the effort to build the signal fire", tag:['leader'], effects:{all:{trust:10}}, survival:{signal:2}},
+    {text:"Make sure everyone gets one real goodbye moment tonight", tag:['peacemaker'], effects:{all:{affection:10}}, survival:{signal:0}},
+    {text:"Leave the signal team and climb the storm-wet lookout alone", tag:['loneWolf'], effects:{}, survival:{signal:-2}, risk:'HIGH RISK', lethal:'lookout_alone'}
+  ]
+}
+};
+
+/* ============================= STATE ============================= */
+let state = null;
+function initState(){
+  const stats = {};
+  for(const id of CHAR_ORDER){
+    stats[id] = {trust:0,loyalty:0,respect:0,affection:0,suspicion:0,resentment:0,jealousy:0,fear:0};
+  }
+  stats.dez.trust = -15; stats.dez.suspicion = 10;
+  stats.priya.jealousy = 8;
+  return {
+    stats,
+    flags:{},
+    survival:{food:2,water:2,shelter:1,signal:0},
+    tagCounts:{leader:0,diplomat:0,strategist:0,protector:0,peacemaker:0,wildcard:0,loneWolf:0},
+    seqIndex:-1,
+    journal:[],
+    mapLocations:{...MAP_START},
+    socialRelations:{},
+    socialLog:[],
+    mapTick:0,
+    observedLocation:'camp',
+    _d3target:null,
+    _lastScene:null,
+    minigames:{played:0,wins:0,scores:{}},
+    tension:20,
+    fights:{won:0,lost:0,stopped:0},
+    alive:true,
+    deathReason:null,
+    deathDetail:null,
+    started:false
+  };
+}
+
+function clamp(v){ return Math.max(-100, Math.min(100, v)); }
+
+function changeTension(delta){
+  if(!state) return;
+  state.tension=Math.max(0,Math.min(100,(state.tension||0)+delta));
+}
+function tensionLabel(){
+  const t=state?.tension||0;
+  return t>=70?'volatile':t>=45?'heated':t>=25?'uneasy':'steady';
+}
+function clampSurvival(v){ return Math.max(0, Math.min(5, v)); }
+function applySurvival(changes){
+  if(!changes) return;
+  for(const k of Object.keys(changes)) state.survival[k]=clampSurvival((state.survival[k]||0)+changes[k]);
+}
+function survivalHUD(){
+  const labels={food:'🥫 Food',water:'💧 Water',shelter:'⛺ Shelter',signal:'📡 Signal'};
+  return `<div class="survival-hud">${Object.keys(labels).map(k=>{const v=state.survival[k]||0;return `<span class="survival-pill ${v<=1?'low':v>=3?'good':''}">${labels[k]} <strong>${v}/5</strong></span>`}).join('')}</div>`;
+}
+
+function applyEffects(effectsRaw){
+  let effects = typeof effectsRaw === 'function' ? effectsRaw(state) : effectsRaw;
+  if(!effects) return;
+  const changedChars = {};
+  for(const key of Object.keys(effects)){
+    const deltas = effects[key];
+    const targets = key === 'all' ? CHAR_ORDER : [key];
+    for(const id of targets){
+      let net = 0;
+      for(const stat of Object.keys(deltas)){
+        state.stats[id][stat] = clamp(state.stats[id][stat] + deltas[stat]);
+        net += deltas[stat] * (NEGATIVE_STATS.includes(stat) ? -1 : 1);
+      }
+      changedChars[id] = (changedChars[id]||0) + net;
+    }
+  }
+  for(const id of Object.keys(changedChars)){
+    const net = changedChars[id];
+    if(Math.abs(net) >= 8) showToast(toastPhrase(id, net));
+  }
+}
+
+function toastPhrase(id, net){
+  const name = CHARS[id].name.split(' ')[0];
+  const positivePhrases = [`${name} appreciated that.`, `${name} will remember this.`, `${name} seems to trust you a little more.`];
+  const negativePhrases = [`${name} will remember this.`, `${name} seems suspicious of you.`, `Something shifted between you and ${name}.`];
+  const arr = net >= 0 ? positivePhrases : negativePhrases;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function showToast(msg){
+  const stack = document.getElementById('toast-stack');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  stack.appendChild(el);
+  setTimeout(()=>el.remove(), 3900);
+}
+
+/* ============================= LOCAL STORY DIALOGUE ============================= */
+/* Classroom build: all narration and dialogue are bundled in this file. No API key, login, or network request is required. */
+const LOCAL_SCENES = {
+  'First Light': [
+    {speaker:'ama', line:'Those footprints are fresh. Please tell me somebody else sees that.'},
+    {speaker:'malik', line:'We can panic after we get anything useful from the wreck.'}
+  ],
+  "Ama's Request": [
+    {speaker:'ama', line:'The tidepools might tell us what kind of island this is.'}
+  ],
+  'Overheard by the Fire': [
+    {speaker:'simone', line:'You do not get to act surprised after what happened.'},
+    {speaker:'julian', line:'I am not pretending it did not happen.'}
+  ],
+  'Confessional Under Stars': [
+    {speaker:'dez', line:'Funny thing about islands. Quiet does not mean empty.'}
+  ],
+  'The Water Problem': [
+    {speaker:'priya', line:'So the plan is to be thirsty and optimistic?'},
+    {speaker:'malik', line:'The plan is to make one bottle last.'},
+    {speaker:'nia', line:'Somebody should drink it before we argue it empty.'}
+  ],
+  'Leadership Clash': [
+    {speaker:'malik', line:'Waiting here is still a decision.'},
+    {speaker:'priya', line:'So is walking into a jungle we know nothing about.'}
+  ],
+  "The Secret You're Holding": [
+    {speaker:'simone', line:'If you heard us yesterday, say it with your whole chest.'},
+    {speaker:'julian', line:'Simone, maybe do not make this worse.'}
+  ],
+  'Camp Karaoke': [
+    {speaker:'julian', line:'Good news: the island has officially lowered its entertainment standards.'},
+    {speaker:'dez', line:'That thing is not an instrument.'}
+  ],
+  'Strange Discovery': [
+    {speaker:'dez', line:'This was buried on purpose.'},
+    {speaker:'ama', line:'These numbers repeat. That is not random.'}
+  ],
+  'Storm Warning': [
+    {speaker:'malik', line:'We have minutes, not hours. Pick something and move.'},
+    {speaker:'nia', line:'Nobody goes out alone in this weather.'}
+  ],
+  'Ama Confronts You': [
+    {speaker:'ama', line:'I know things got bad. I also know what you promised.'}
+  ],
+  'Quiet Confrontation': [],
+  'The Truth of the Island': [
+    {speaker:'ama', line:'That picture was taken after we woke up.'},
+    {speaker:'dez', line:'Then somebody was here with us.'}
+  ],
+  'Signal Fire': [
+    {speaker:'priya', line:'Did that radio just say my name?'},
+    {speaker:'malik', line:'Build the fire first. Be terrified second.'}
+  ]
+};
+
+function relationshipAside(id){
+  if(!id || !state || !state.stats[id]) return null;
+  const score=composite(state,id);
+  if(score>90) return `${CHARS[id].name.split(' ')[0]} stays close to you without being asked.`;
+  if(score<-90) return `${CHARS[id].name.split(' ')[0]} keeps a careful distance from you.`;
+  return null;
+}
+
+async function generateSceneText(eventDef, extraContext){
+  const opening = !eventDef.title;
+  if(opening){
+    return {
+      narration:'You wake on warm sand with your ears ringing. Seven strangers stir nearby, while a trail of wet footprints leads from the ocean straight into the trees.',
+      dialogue:[
+        {speaker:'ama',line:'Okay... nobody else walked out of the ocean, right?'},
+        {speaker:'malik',line:'Everybody count heads. Right now.'}
+      ]
+    };
+  }
+  let narration = eventDef.beat || 'The island goes strangely quiet around you.';
+  const aside=(eventDef.involved||[]).map(relationshipAside).find(Boolean);
+  if(aside && narration.length<280) narration += ` ${aside}`;
+  let dialogue=(LOCAL_SCENES[eventDef.title]||[]).filter(d=>(eventDef.involved||[]).length===0 || (eventDef.involved||[]).includes(d.speaker));
+  if(eventDef.title==='Quiet Confrontation' && state._d3target){
+    dialogue=[{speaker:state._d3target,line:'I needed you to notice before I had to ask.'}];
+  }
+  return {narration, dialogue:dialogue.slice(0,2)};
+}
+
+async function generateEndingText(archetypeKey, closestAlly, biggestRival){
+  const ally=CHARS[closestAlly].name.split(' ')[0];
+  const rival=CHARS[biggestRival].name.split(' ')[0];
+  const survivalTotal=Object.values(state.survival||{}).reduce((a,b)=>a+b,0);
+  const fightLine=state.fights.lost===0 && state.fights.won>0
+    ? `You kept ${state.fights.won} major confrontation${state.fights.won===1?'':'s'} from destroying the camp.`
+    : state.fights.lost>0
+      ? `${state.fights.lost} confrontation${state.fights.lost===1?'':'s'} got out of control, and the camp paid for it in supplies and trust.`
+      : 'The camp never fully exploded into a major fight.';
+  const groupLine=state.tension>=70
+    ? 'By rescue, the group is barely functioning as one unit.'
+    : state.tension>=45
+      ? 'The group makes it to rescue, but several arguments are still one bad sentence away from another fight.'
+      : 'The group is exhausted, but it is still functioning as a team when rescue reaches shore.';
+  const rescueLine=(state.flags.signal_fire_success && survivalTotal>=8)
+    ? 'Your signal is strong enough that the ship turns directly toward the beach.'
+    : survivalTotal<6
+      ? 'Low supplies and a weak signal delay the rescue approach, forcing everyone to hold the beach longer.'
+      : 'The signal is rough, but the ship eventually commits to shore.';
+  return `${groupLine} ${fightLine} ${ally} is still willing to work beside you. ${rival} keeps their distance. ${rescueLine} Then, just as everyone starts to believe it is over, a crew member reaches down from the rescue boat wearing the same looping symbol found on the island.`;
+}
+
+/* ============================= EVENT RESOLUTION ============================= */
+function getCurrentEventDef(){
+  const key = SEQUENCE[state.seqIndex];
+  if(!key) return null;
+
+  if(key === 'd2-morning'){
+    const def=EVENTS['d2-morning'];
+    let echo='';
+    if(state.flags.helped_malik_wreckage) echo=' Malik looks to you first because you were the one who helped him save supplies yesterday.';
+    else if(state.flags.comforted_ama) echo=' Ama stays close to you after yesterday, and you catch her watching the missing-food argument like she expects you to notice what everyone else misses.';
+    else if(state.flags.scouted_alone) echo=' Priya points out that you disappeared alone yesterday, and suddenly the argument about missing supplies feels uncomfortably personal.';
+    def.beat="The rain catch only filled one bottle overnight — and two sealed food packets are missing. Priya thinks somebody hid them. Malik wants everyone searched. Nia quietly offers her share while Simone says searching people will turn camp into a courtroom."+echo;
+    return def;
+  }
+  if(key === 'd2-afternoon'){
+    const def=EVENTS['d2-afternoon'];
+    let echo='';
+    if(state.flags.helped_malik_wreckage) echo=' Malik reminds everyone that you already worked beside him when the wreckage was disappearing, clearly expecting your support again.';
+    if(state.flags.comforted_ama) echo=' Ama catches your eye from the edge of the argument, silently waiting to see whether you protect a person or pick a side.';
+    def.beat="The missing supplies turn a disagreement into a full camp blowup. Malik wants a ridge team and says fear is making people reckless. Priya fires back that his need to be in charge is the real danger. Julian tries to joke and nobody laughs."+echo;
+    return def;
+  }
+  if(key === 'd2-evening'){
+    const def=state.flags.overheard_simone_julian ? EVENTS['d2-evening-secret'] : EVENTS['d2-evening-karaoke'];
+    if(state.flags.confronted_simone_julian && state.flags.overheard_simone_julian!==true && def.title==='Camp Karaoke'){
+      def.beat='Julian starts a goofy camp talent show, but Simone keeps glancing at you. She has not forgotten that you confronted them by the fire yesterday, even if you never learned the full story.';
+    }else if(state.flags.gave_simone_space && def.title==='Camp Karaoke'){
+      def.beat='Julian starts a goofy camp talent show. Simone quietly thanks you for giving them space yesterday before she lets herself laugh with everyone else.';
+    }
+    return def;
+  }
+  if(key === 'd3-morning'){
+    const def=EVENTS['d3-morning'];
+    let echo='';
+    if(state.flags.sided_malik) echo=' Malik is already moving before anyone else, and because you backed him yesterday he hands you rope without even asking whether you are with him.';
+    else if(state.flags.sided_priya) echo=' Priya has already organized the camp supplies because you backed her plan yesterday; Malik follows, but the tension between the three of you is obvious.';
+    else if(state.flags.proposed_compromise) echo=" Your compromise from yesterday became the camp's default plan, so both Malik and Priya look to you when the storm forces another split-second decision.";
+    def.beat="The sky turns bruise-dark. A hard gust peels sand off the dune and exposes the corner of a concrete stairwell that absolutely was not visible yesterday. Before the storm hits, you only have time for one priority."+echo;
+    return def;
+  }
+  if(key === 'd3-afternoon'){
+    if(state.flags.promised_ama_exploration && state.flags.tidepool_played){
+      const def=EVENTS['d3-afternoon-generic'];
+      state._d3target = lowestComposite(state,['ama']);
+      const t=state._d3target;
+      def.beat = `Because you actually kept your promise to Ama, she is not the one confronting you. Instead, ${CHARS[t].name} pulls you aside before the storm breaks. "You keep showing up for everybody else," they say. "Where does that leave me?"`;
+      def.involved=[t];
+      return def;
+    }
+    if(state.flags.promised_ama_exploration){
+      return EVENTS['d3-afternoon-promise'];
+    }else{
+      const def = EVENTS['d3-afternoon-generic'];
+      const target = lowestComposite(state);
+      state._d3target = target;
+      def.beat = `${CHARS[target].name} reaches the supply crate at the same time you do and puts a hand on the lid. "You don't get to keep deciding who gets what," they say. Nobody moves. The camp is waiting to see whether this becomes another fight.`;
+      def.involved = [target];
+      return def;
+    }
+  }
+  if(key === 'd3-night'){
+    const def=EVENTS['d3-night'];
+    let consequence='';
+    if(state.flags.sided_malik && state.stats.malik.trust>=10) consequence=' Malik immediately takes your side and organizes the others around your plan.';
+    else if(state.flags.sided_priya && state.stats.priya.trust>=10) consequence=' Priya backs your call and gets everyone moving before Malik can argue.';
+    else if(state.flags.proposed_compromise) consequence=' Malik and Priya both wait for your call; your earlier compromise made you the person they trust to break the tie.';
+    if(state.flags.scouted_alone && state.stats.priya.trust<0) consequence+=' Priya refuses to let you disappear on your own again and blocks the path toward the trees.';
+    if(!state.flags.water_success) consequence+=' Everyone is dehydrated from the failed rain catch, so the final push is slower and mistakes come easier.';
+    if(!state.flags.shelter_held) consequence+=' Half the camp is scattered after the shelter damage, leaving fewer hands for the signal fire.';
+    def.beat="A light blinks on the horizon in a three-short, one-long pattern — the same pattern Ama found scratched beside the metal plate. Then an old radio from the wreck crackles to life and says your group’s first names before anyone has made contact."+consequence;
+    return def;
+  }
+
+  if(key === 'd3-evening'){
+    const def = EVENTS['d3-evening'];
+    let extra;
+    if(state.flags.kept_plate_secret) extra = "You and Dez use the plate's symbol to open the concrete stairwell. Ama follows you anyway, furious that you kept her out.";
+    else if(state.flags.ama_has_plate) extra = "Ama recognizes the plate's numbers as a lock sequence and leads you to the concrete stairwell before anyone can stop her.";
+    else if(state.flags.revealed_plate_group) extra = "Half the camp wants the concrete stairwell opened and half wants it left alone. The argument ends when the lock clicks by itself.";
+    else extra = "The storm exposes a concrete stairwell. Inside, the same looping symbol appears on a dead monitor before it flickers on.";
+    const evidenceEcho = state.flags.tidepool_clues ? ' Ama pulls out the machine screw and marked shell you found together at the tidepools; both match hardware and symbols in the room.' : state.flags.plate_clues_found ? ' The initials, P-04 code, and symbol you identified on the plate appear again inside the room.' : '';
+    def.beat = `${extra}${evidenceEcho} Below ground is a dusty observation room with eight labeled folders, a live map of your camp, and a photograph of all eight of you asleep on the beach — taken from the ridge after the crash. On the back: PHASE FOUR.`;
+    return def;
+  }
+  return EVENTS[key];
+}
+
+function currentDayNumber(){
+  const key = SEQUENCE[state.seqIndex];
+  if(!key) return 1;
+  return parseInt(key.split('-')[0].replace('d',''));
+}
+function currentSlot(){
+  const key = SEQUENCE[state.seqIndex];
+  if(!key) return 'morning';
+  return key.split('-')[1];
+}
+
+
+/* ============================= SCENE VISUALS ============================= */
+function sceneVisual(key){
+  const night = key.includes('night');
+  const storm = key.includes('d3');
+  const palette = night
+    ? {sky1:'#111322',sky2:'#2b1d45',sea:'#172a38',sand:'#705a46',glow:'#E9B44C'}
+    : storm
+      ? {sky1:'#252239',sky2:'#5a4960',sea:'#243645',sand:'#826956',glow:'#B8A9D8'}
+      : {sky1:'#506b86',sky2:'#d58d72',sea:'#2f7079',sand:'#b98d66',glow:'#F2C968'};
+
+  let detail='';
+  let whisper='';
+  if(key==='d1-morning'){
+    detail=`<g class="drift" opacity=".85"><path d="M250 151 q35-20 75-5" stroke="#2a211b" stroke-width="5" fill="none"/><path d="M295 150 q7-13 14-3 q7 9 14-2" stroke="#dbc5a7" stroke-width="2" fill="none"/></g>
+      <g opacity=".8"><ellipse cx="88" cy="151" rx="7" ry="3" fill="#2a211b"/><ellipse cx="110" cy="144" rx="7" ry="3" fill="#2a211b"/><ellipse cx="132" cy="136" rx="7" ry="3" fill="#2a211b"/><ellipse cx="154" cy="128" rx="7" ry="3" fill="#2a211b"/></g>`;
+    whisper='The prints begin at the tide.';
+  } else if(key==='d1-evening'){
+    detail=`<g class="flicker"><ellipse cx="208" cy="148" rx="25" ry="8" fill="#e98942" opacity=".35"/><path d="M205 150 q-15-25 3-40 q20 18 3 40" fill="#f2b24d"/><path d="M210 148 q-8-18 2-28 q11 13 2 28" fill="#fff0a5"/></g>
+      <g opacity=".8"><circle cx="172" cy="128" r="9" fill="#17121a"/><path d="M160 151 q12-26 24 0" fill="#17121a"/><circle cx="247" cy="126" r="9" fill="#17121a"/><path d="M235 151 q12-27 24 0" fill="#17121a"/></g>`;
+    whisper='Some conversations stop too fast.';
+  } else if(key==='d1-night'){
+    detail=`<g class="pulse"><path d="M193 133 q18-18 36 0 q-18 18-36 0z" fill="none" stroke="#b9a6df" stroke-width="2"/><circle cx="211" cy="133" r="4" fill="#b9a6df"/></g>
+      <path d="M184 151 l55 0" stroke="#513c32" stroke-width="7" stroke-linecap="round"/>`;
+    whisper='Dez says he has never seen the symbol.';
+  } else if(key==='d2-morning'){
+    detail=`<g><rect x="258" y="137" width="31" height="18" rx="3" fill="#d5bd8e"/><path d="M262 141h23M262 146h23" stroke="#7c6448" stroke-width="1"/><path d="M112 145 q18-18 36 0" stroke="#241b1b" stroke-width="4" fill="none"/></g>`;
+    whisper='Two packets are gone.';
+  } else if(key==='d2-afternoon'){
+    detail=`<g opacity=".92"><circle cx="150" cy="125" r="9" fill="#15131a"/><path d="M137 154 q13-32 26 0" fill="#15131a"/><circle cx="245" cy="125" r="9" fill="#15131a"/><path d="M232 154 q13-32 26 0" fill="#15131a"/><path d="M166 137 L228 137" stroke="#e8654f" stroke-width="2" stroke-dasharray="4 5"/></g>`;
+    whisper='The camp is choosing sides.';
+  } else if(key.includes('d2-evening')){
+    detail=`<g transform="translate(205 126) rotate(-7)"><rect x="-34" y="-22" width="68" height="44" rx="3" fill="#ddd0b8"/><rect x="-29" y="-17" width="58" height="25" fill="#54445e"/><path d="M-24 15h36" stroke="#6c5545" stroke-width="2"/><path d="M17 15h10" stroke="#6c5545" stroke-width="2"/></g>`;
+    whisper=key.includes('secret')?'They were invited. Separately.':'For one hour, everyone pretends it is normal.';
+  } else if(key==='d2-night'){
+    detail=`<g class="pulse"><rect x="174" y="119" width="78" height="39" rx="4" fill="#4b4f50" stroke="#a49a84"/><path d="M186 139 q18-18 36 0 q-18 18-36 0z" fill="none" stroke="#c3b6d9" stroke-width="2"/><circle cx="204" cy="139" r="4" fill="#c3b6d9"/><text x="229" y="137" fill="#d7cbb8" font-size="7" font-family="monospace">8 ID</text><text x="229" y="147" fill="#d7cbb8" font-size="7" font-family="monospace">P-04</text></g>`;
+    whisper='Your initials are already here.';
+  } else if(key==='d3-morning'){
+    detail=`<g><path d="M238 156 l40-34 h49 v34z" fill="#3b3d45"/><rect x="271" y="129" width="42" height="27" fill="#20232a"/><path d="M279 136h26M279 143h26M279 150h26" stroke="#5f6068" stroke-width="2"/></g><path class="drift" d="M10 56 q80 20 155-5 t175 4" stroke="#c6b8cf" stroke-width="3" opacity=".2" fill="none"/>`;
+    whisper='Concrete. Under the dune.';
+  } else if(key.includes('d3-afternoon')){
+    detail=`<g transform="translate(215 132) rotate(4)"><rect x="-44" y="-28" width="88" height="56" rx="2" fill="#e8dcc8"/><path d="M-34 -17h55M-34 -8h67M-34 1h50" stroke="#65586d" stroke-width="2"/><text x="-34" y="18" fill="#6c547f" font-size="7" font-family="monospace">EIGHT ARRIVED.</text></g>`;
+    whisper='That line was not in your journal before.';
+  } else if(key==='d3-evening'){
+    detail=`<g><rect x="117" y="102" width="184" height="59" rx="3" fill="#25272d"/><rect x="126" y="111" width="70" height="39" fill="#11151c"/><circle class="pulse" cx="159" cy="130" r="12" fill="#8e7cc3" opacity=".45"/><rect x="214" y="111" width="76" height="39" fill="#d9ccb6"/><circle cx="235" cy="127" r="8" fill="#342a2a"/><circle cx="264" cy="127" r="8" fill="#342a2a"/><path d="M225 144h51" stroke="#6f5b4e" stroke-width="2"/></g>`;
+    whisper='The photo was taken after the crash.';
+  } else if(key==='d3-night'){
+    detail=`<g class="pulse"><circle cx="318" cy="84" r="4" fill="#f6eac2"/><circle cx="327" cy="84" r="4" fill="#f6eac2"/><circle cx="336" cy="84" r="4" fill="#f6eac2"/><rect x="347" y="80" width="12" height="8" rx="4" fill="#f6eac2"/></g><path d="M290 130 q35-16 78 0 l-8 16 h-61z" fill="#1b2029"/><path d="M316 116v17" stroke="#1b2029" stroke-width="4"/>`;
+    whisper='The radio knows your names.';
+  }
+
+  return `<div class="scene-art" aria-hidden="true">
+    <svg viewBox="0 0 400 180" preserveAspectRatio="none">
+      <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${palette.sky1}"/><stop offset="1" stop-color="${palette.sky2}"/></linearGradient></defs>
+      <rect width="400" height="180" fill="url(#sky)"/>
+      <circle cx="326" cy="38" r="22" fill="${palette.glow}" opacity="${night?'.22':'.45'}"/>
+      <path d="M0 98 Q80 86 160 97 T400 95 V180 H0Z" fill="${palette.sea}"/>
+      <path class="drift" d="M0 111 Q70 102 135 111 T270 109 T400 112" fill="none" stroke="rgba(235,238,231,.23)" stroke-width="2"/>
+      <path d="M0 139 Q80 124 155 140 T310 138 T400 141 V180 H0Z" fill="${palette.sand}"/>
+      <g class="sway" opacity=".72"><path d="M32 145 Q36 78 58 54" stroke="#18221d" stroke-width="7" fill="none"/><path d="M55 57 q-30 0-39-18 q25-5 42 9 q-7-22 8-35 q10 21 2 38 q19-14 39-5 q-16 18-44 15" fill="#1e3027"/></g>
+      ${detail}
+    </svg>
+    ${whisper?`<div class="eerie-whisper">${whisper}</div>`:''}
+  </div>`;
+}
+
+function currentMysteryChips(){
+  const chips=[];
+  if(state.flags.overheard_simone_julian) chips.push('Shared invitation');
+  if(state.flags.kept_plate_secret || state.flags.ama_has_plate || state.flags.revealed_plate_group) chips.push('Marked plate');
+  if(currentDayNumber()>=3) chips.push('Hidden structure');
+  return chips.length ? `<div class="mystery-strip">${chips.map(x=>`<span class="mystery-chip">${x}</span>`).join('')}</div>` : '';
+}
+
+/* ============================= RENDERING ============================= */
+const app = document.getElementById('app');
+
+function render(){
+  if(!state || !state.started) renderStart();
+  else if(state.seqIndex >= SEQUENCE.length) renderEnding();
+  else renderGame();
+}
+
+function renderStart(){
+  app.innerHTML = `
+    <div class="start-screen">
+      <div class="demo-badge">Class demo build · no login or API required</div>
+      <div class="eyebrow">A CHARACTER-DRIVEN SURVIVAL DRAMA</div>
+      <div class="wordmark">STRANDED</div>
+      <div class="tagline">Surviving the island is the easy part.</div>
+      <div class="start-blurb">You and seven strangers wake up on a beach with no idea how you got there. Over three days, relationships, secrets, mini games, and the island itself react to the choices you make.</div>
+      <div class="how-to-play" aria-label="How to play">
+        <div class="how-card"><div class="how-num">01 · Watch</div><div class="how-title">Explore the live island</div><div class="how-text">Characters wander, meet, gossip, argue, and investigate on their own.</div></div>
+        <div class="how-card"><div class="how-num">02 · Choose</div><div class="how-title">Shape relationships</div><div class="how-text">Pick responses carefully. Characters remember trust, resentment, affection, jealousy, and fear.</div></div>
+        <div class="how-card"><div class="how-num">03 · Play</div><div class="how-title">Complete challenges</div><div class="how-text">Survival challenges appear throughout the three days. Some high-risk choices can end the run if you are unprepared.</div></div>
+        <div class="how-card"><div class="how-num">04 · Finish</div><div class="how-title">Reach Day 3</div><div class="how-text">There are 12 story moments. Your final ally, rival, archetype, and mystery outcome reflect your run.</div></div>
+      </div>
+      <div class="cast-preview" id="cast-preview"></div>
+      <div class="demo-meta">3 days · branching survival · fights · lethal choices · replayable outcomes</div>
+      <button class="btn" id="begin-btn">Begin Three-Day Run</button>
+    </div>
+  `;
+  const preview = document.getElementById('cast-preview');
+  CHAR_ORDER.forEach(id=>{
+    const c = CHARS[id];
+    const item = document.createElement('div');
+    item.className = 'cast-preview-item';
+    item.innerHTML = `${portraitHTML(id,56,true)}<span>${c.name.split(' ')[0]}</span>`;
+    preview.appendChild(item);
+  });
+  document.getElementById('begin-btn').addEventListener('click', beginGame);
+}
+
+async function beginGame(){
+  state = initState();
+  state.started = true;
+  state.seqIndex = 0;
+  render();
+  await loadScene(true);
+}
+
+function renderArc(){
+  const day = currentDayNumber();
+  const slot = currentSlot();
+  const positions = [{x:20,y:34,label:'AM'}, {x:90,y:14,label:'NOON'}, {x:170,y:14,label:'PM'}, {x:240,y:34,label:'NIGHT'}];
+  const slotIndex = SLOT_ORDER.indexOf(slot);
+  let nodes = '';
+  SLOT_ORDER.forEach((s,i)=>{
+    const p = positions[i];
+    const cls = i < slotIndex ? 'done' : (i === slotIndex ? 'active' : '');
+    nodes += `<circle class="arc-node ${cls}" cx="${p.x}" cy="${p.y}" r="6"></circle>
+      <text class="arc-node-label ${i===slotIndex?'active':''}" x="${p.x}" y="${p.y+22}" text-anchor="middle">${p.label}</text>`;
+  });
+  return `
+    <div class="arc-wrap">
+      <div class="arc-label">
+        <div class="day-title">Day ${day}</div>
+        <div class="eyebrow">${SLOT_LABEL[slot]}</div>
+      </div>
+      <svg class="arc-svg" viewBox="0 0 260 44">
+        <path class="arc-path" d="M20,34 Q130,-10 240,34"></path>
+        ${nodes}
+      </svg>
+    </div>
+  `;
+}
+
+function renderCastPanel(){
+  let rows = '';
+  CHAR_ORDER.forEach(id=>{
+    const c = CHARS[id];
+    const comp = composite(state,id);
+    const pct = Math.max(4, Math.min(100, ((comp+400)/800)*100));
+    const color = comp >= 0 ? 'var(--lagoon)' : 'var(--coral)';
+    rows += `
+      <button class="cast-chip" data-char="${id}">
+        ${portraitHTML(id,40,false)}
+        <div class="chip-text">
+          <div class="name">${c.name.split(' ')[0]}</div>
+          <div class="role">${c.role}</div>
+          <div class="bar-mini"><div class="bar-mini-fill" style="width:${pct}%; background:${color}"></div></div>
+        </div>
+      </button>
+    `;
+  });
+  return `
+    <div class="cast-panel">
+      <h3>⛺ The Cast</h3>
+      <div class="cast-list">${rows}</div>
+      <button class="journal-toggle" id="journal-btn">📓 Open Journal</button>
+    </div>
+  `;
+}
+
+
+
+function stopSocialSim(){
+  if(socialSimTimer){ clearInterval(socialSimTimer); socialSimTimer=null; }
+}
+function isRuinsUnlocked(){
+  return currentDayNumber()>=3 || state.flags.mystery_push || state.flags.mystery_alone || state.flags.ama_has_plate || state.flags.kept_plate_secret || state.flags.revealed_plate_group;
+}
+function locationClass(id){
+  let c='location-hotspot';
+  if(ISLAND_LOCATIONS[id].mystery) c+=' mystery';
+  if(id==='ruins' && !isRuinsUnlocked()) c+=' locked';
+  return c;
+}
+function renderIslandMap(){
+  const slot=currentSlot();
+  const mapClass = `island-map ${slot==='night'?'night':''} ${currentDayNumber()===3?'storm':''}`;
+  const locs=Object.entries(ISLAND_LOCATIONS).map(([id,l])=>`<button class="${locationClass(id)}" data-location="${id}" style="left:${l.x}%;top:${l.y}%" title="${l.desc}"><span class="loc-icon">${l.icon}</span><span class="loc-name">${l.name}</span></button>`).join('');
+  return `
+    <section class="world-panel">
+      <div class="world-head">
+        <div><div class="eyebrow">Island map</div><div class="world-title">Day ${currentDayNumber()} · ${SLOT_LABEL[slot]}</div><div class="story-progress"><strong>${Math.min(state.seqIndex+1,SEQUENCE.length)}/${SEQUENCE.length}</strong><div class="story-progress-track"><div class="story-progress-fill" style="width:${Math.max(4,((state.seqIndex+1)/SEQUENCE.length)*100)}%"></div></div><span>${state.minigames.wins}/${state.minigames.played} challenges</span><span class="tension-pill">Tension ${state.tension} · ${tensionLabel()}</span></div>${survivalHUD()}</div>
+      </div>
+      <div class="${mapClass}" id="island-map">
+        <div class="map-path p1"></div><div class="map-path p2"></div>${locs}
+        <div id="map-avatars"></div>
+      </div>
+    </section>`;
+}
+function mapJitter(id, loc){
+  const same=CHAR_ORDER.filter(c=>state.mapLocations[c]===loc);
+  const idx=Math.max(0,same.indexOf(id));
+  const offsets=[[-3,-1],[3,1],[-1,4],[4,-4],[-5,4],[6,3],[1,-6]];
+  return offsets[idx%offsets.length];
+}
+function renderMapAvatars(animated=false){
+  const layer=document.getElementById('map-avatars'); if(!layer) return;
+  layer.innerHTML=CHAR_ORDER.map(id=>{
+    const loc=state.mapLocations[id]||'camp', l=ISLAND_LOCATIONS[loc]||ISLAND_LOCATIONS.camp, j=mapJitter(id,loc);
+    return `<button class="map-avatar ${animated?'walking':''}" data-map-char="${id}" style="left:${l.x+j[0]}%;top:${l.y+j[1]}%" aria-label="${CHARS[id].name} at ${l.name}">${portraitHTML(id,34,false)}<span class="map-avatar-name">${CHARS[id].name.split(' ')[0]}</span></button>`;
+  }).join('');
+  document.querySelectorAll('[data-map-char]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();observeCharacter(el.dataset.mapChar);openCharModal(el.dataset.mapChar);}));
+  if(animated) setTimeout(()=>document.querySelectorAll('.map-avatar').forEach(x=>x.classList.remove('walking')),2300);
+}
+function relationKey(a,b){return [a,b].sort().join('|')}
+function pairRelation(a,b){return state.socialRelations[relationKey(a,b)]||0}
+function changePairRelation(a,b,delta){const k=relationKey(a,b);state.socialRelations[k]=Math.max(-30,Math.min(30,(state.socialRelations[k]||0)+delta));}
+function peopleAt(loc){return CHAR_ORDER.filter(id=>state.mapLocations[id]===loc)}
+function fmtLine(line,a,b){return line.replace('{a}',CHARS[a].name.split(' ')[0]).replace('{b}',CHARS[b].name.split(' ')[0])}
+function addSocialLog(text,kind='neutral'){
+  state.socialLog.unshift({text,kind,day:currentDayNumber(),slot:currentSlot()}); state.socialLog=state.socialLog.slice(0,5); renderSocialFeed();
+}
+function renderSocialFeed(){
+  const el=document.getElementById('social-feed-lines'); if(!el) return;
+  el.innerHTML=(state.socialLog.length?state.socialLog:[{text:'Everyone is still feeling each other out.'}]).slice(0,3).map(x=>`<div class="feed-line">${x.text}</div>`).join('');
+}
+function chooseSocialMoment(a,b,loc){
+  const rel=pairRelation(a,b); const eerieChance=(currentSlot()==='night'?0.23:0.07)+(loc==='jungle'||loc==='ruins'?0.18:0);
+  let bucket;
+  if(Math.random()<eerieChance) bucket='eerie';
+  else if(rel<=-7 || Math.random() < (state.stats[a].resentment+state.stats[b].resentment+20)/260) bucket='drama';
+  else if(rel>=6) bucket='friendly';
+  else bucket=Math.random()<.48?'friendly':'neutral';
+  const arr=SOCIAL_LINES[bucket], pick=arr[Math.floor(Math.random()*arr.length)], line=fmtLine(pick[1],a,b);
+  if(bucket==='friendly') changePairRelation(a,b,2+Math.floor(Math.random()*3));
+  if(bucket==='drama') changePairRelation(a,b,-3-Math.floor(Math.random()*3));
+  if(bucket==='neutral') changePairRelation(a,b,Math.random()<.55?1:0);
+  addSocialLog(line,bucket);
+  observeLocation(loc,line);
+}
+function moveCharacter(id,target){
+  if(target==='ruins'&&!isRuinsUnlocked()) target='jungle';
+  state.mapLocations[id]=target;
+}
+function socialTick(forceInteraction=false){
+  if(!state||!state.started||state.seqIndex>=SEQUENCE.length)return;
+  state.mapTick++;
+  const movers=[...CHAR_ORDER].sort(()=>Math.random()-.5).slice(0,2+(Math.random()<.35?1:0));
+  movers.forEach(id=>{
+    const here=state.mapLocations[id]||'camp'; let options=(MAP_NEIGHBORS[here]||['camp']).filter(x=>x!=='ruins'||isRuinsUnlocked());
+    if(Math.random()<.58){
+      const occupied=options.filter(o=>peopleAt(o).length>0); if(occupied.length) options=occupied;
+    }
+    if(options.length) moveCharacter(id,options[Math.floor(Math.random()*options.length)]);
+  });
+  renderMapAvatars(true);
+  const groups=Object.keys(ISLAND_LOCATIONS).map(loc=>[loc,peopleAt(loc)]).filter(x=>x[1].length>=2);
+  if(groups.length && (forceInteraction||Math.random()<.82)){
+    const [loc,people]=groups[Math.floor(Math.random()*groups.length)]; const shuffled=[...people].sort(()=>Math.random()-.5); chooseSocialMoment(shuffled[0],shuffled[1],loc);
+  }else if(Math.random()<.32){
+    const id=CHAR_ORDER[Math.floor(Math.random()*CHAR_ORDER.length)],loc=state.mapLocations[id];
+    const solo=[`${CHARS[id].name.split(' ')[0]} keeps glancing toward the horizon.`,`${CHARS[id].name.split(' ')[0]} disappears behind the trees for a minute, then comes back without explaining.`,`${CHARS[id].name.split(' ')[0]} seems lost in thought.`];
+    const line=solo[Math.floor(Math.random()*solo.length)];addSocialLog(line);
+  }
+}
+function observeLocation(loc, override){
+  state.observedLocation=loc; const l=ISLAND_LOCATIONS[loc],people=peopleAt(loc);
+  const title=document.getElementById('observe-title'), txt=document.getElementById('observe-text'); if(!title||!txt)return;
+  title.textContent=`Watching ${l.name}`;
+  if(override){txt.textContent=override;return;}
+  if(loc==='ruins'&&!isRuinsUnlocked()){txt.textContent='The path looks ordinary from here. For now.';return;}
+  if(!people.length) txt.textContent=`Nobody is here right now. ${l.desc}`;
+  else if(people.length===1) txt.textContent=`${CHARS[people[0]].name.split(' ')[0]} is here alone. ${l.desc}`;
+  else txt.textContent=`${people.map(x=>CHARS[x].name.split(' ')[0]).join(', ')} are here together. That could stay peaceful. Could.`;
+}
+function observeCharacter(id){observeLocation(state.mapLocations[id],`${CHARS[id].name.split(' ')[0]} is at ${ISLAND_LOCATIONS[state.mapLocations[id]].name}. Their mood toward you is ${composite(state,id)>60?'warm':composite(state,id)<-60?'tense':'hard to read'}.`)}
+function bindIslandMap(){
+  document.querySelectorAll('[data-location]').forEach(btn=>btn.addEventListener('click',()=>observeLocation(btn.dataset.location)));
+  const shuffle=document.getElementById('shuffle-map'); if(shuffle)shuffle.addEventListener('click',()=>socialTick(true));
+  const gather=document.getElementById('gather-camp'); if(gather)gather.addEventListener('click',()=>{CHAR_ORDER.forEach(id=>moveCharacter(id,'camp'));renderMapAvatars(true);addSocialLog('You call everyone back to camp. Several conversations stop the second people arrive.','neutral');observeLocation('camp');});
+  renderMapAvatars(false);renderSocialFeed();observeLocation(state.observedLocation||'camp');
+}
+function startSocialSim(){
+  stopSocialSim();
+  socialSimTimer=setInterval(()=>socialTick(false),7200);
+}
+
+function renderGame(){
+  stopSocialSim();
+  app.innerHTML = `
+    <div class="game-shell">
+      ${renderCastPanel()}
+      <div>
+        ${renderArc()}
+        ${renderIslandMap()}
+        <div class="scene-panel" id="scene-panel">
+          <div class="eyebrow" id="scene-eyebrow"></div>
+          <div class="scene-title" id="scene-title"></div>
+          <div id="scene-art-wrap"></div>
+          <div class="portrait-row" id="portrait-row"></div>
+          <div class="narration-text loading" id="narration-text">Loading<span class="dots"></span></div>
+          <div class="dialogue-list" id="dialogue-list"></div>
+          <div class="choices" id="choices-wrap"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  bindCastPanel();
+  bindIslandMap();
+  startSocialSim();
+}
+
+function bindCastPanel(){
+  document.querySelectorAll('.cast-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=> openCharModal(btn.dataset.char));
+  });
+  const jbtn = document.getElementById('journal-btn');
+  if(jbtn) jbtn.addEventListener('click', openJournal);
+}
+
+async function loadScene(isNewGame){
+  const eventDef = getCurrentEventDef();
+  document.getElementById('scene-eyebrow').textContent = `Day ${currentDayNumber()} · ${SLOT_LABEL[currentSlot()]}`;
+  document.getElementById('scene-title').textContent = eventDef.title;
+  const currentKey = SEQUENCE[state.seqIndex] || 'd1-morning';
+  const visualKey = currentKey==='d2-evening' ? (state.flags.overheard_simone_julian ? 'd2-evening-secret' : 'd2-evening-karaoke') : currentKey;
+  document.getElementById('scene-art-wrap').innerHTML = sceneVisual(visualKey);
+  const mysteryWrap=document.getElementById('mystery-chips-wrap'); if(mysteryWrap) mysteryWrap.innerHTML = currentMysteryChips();
+  const panelEl = document.getElementById('scene-panel');
+  if(panelEl) panelEl.classList.toggle('eerie', currentDayNumber()>=2 || currentSlot()==='night');
+
+  // Nudge involved characters toward a location that matches the current story beat.
+  const sceneHome = ({morning:'camp',afternoon:'beach',evening:'firepit',night:'firepit'})[currentSlot()] || 'camp';
+  if(eventDef.involved && eventDef.involved.length){
+    const special = currentKey.includes('morning') && currentDayNumber()===1 ? 'wreckage'
+      : eventDef.title.toLowerCase().includes('tide') ? 'tidepools'
+      : eventDef.title.toLowerCase().includes('island') || eventDef.title.toLowerCase().includes('truth') ? (isRuinsUnlocked()?'ruins':'jungle')
+      : eventDef.title.toLowerCase().includes('storm') ? 'camp'
+      : sceneHome;
+    eventDef.involved.forEach(id=>moveCharacter(id,special));
+    renderMapAvatars(true); observeLocation(special);
+  }
+
+  const portraitRow = document.getElementById('portrait-row');
+  const involvedForPortraits = isNewGame ? CHAR_ORDER : (eventDef.involved && eventDef.involved.length ? eventDef.involved : []);
+  portraitRow.innerHTML = involvedForPortraits.map(id => portraitHTML(id, involvedForPortraits.length > 4 ? 44 : 68, true)).join('');
+
+  const narrEl = document.getElementById('narration-text');
+  narrEl.className = 'narration-text loading';
+  narrEl.innerHTML = 'The island holds its breath<span class="dots"></span>';
+  document.getElementById('dialogue-list').innerHTML = '';
+  document.getElementById('choices-wrap').innerHTML = '';
+
+  const scene = isNewGame
+    ? await generateSceneText({beat:"You wake on warm sand with seven strangers and no memory of the final moments before the crash. The wreck smokes nearby. Farther up the beach, a trail of wet footprints leads from the ocean into the trees — too fresh to be old.", involved:['nia','malik','simone','julian','ama','priya','dez']}, "This is the opening scene. Make it immediately intriguing and faintly eerie without explaining the footprints.")
+    : await generateSceneText(eventDef);
+
+  if(!state) return;
+  state._lastScene = scene;
+
+  narrEl.className = 'narration-text';
+  narrEl.textContent = scene.narration;
+
+  if(currentDayNumber()===3 && currentSlot()==='afternoon') {
+    narrEl.insertAdjacentHTML('afterend', `<div class="glitch-note">JOURNAL UPDATE // a sentence appears beneath your last entry in handwriting that is not yours: “EIGHT ARRIVED. NINE SHADOWS LEFT THE WATER.”</div>`);
+    state.flags.journal_changed = true;
+  }
+
+  const dList = document.getElementById('dialogue-list');
+  dList.innerHTML = scene.dialogue.map(d => `
+    <div class="dialogue-row">
+      ${portraitHTML(d.speaker, 36, false)}
+      <div class="dialogue-bubble">
+        <div class="dialogue-speaker">${CHARS[d.speaker].name.split(' ')[0]}</div>
+        <div class="dialogue-line">${d.line}</div>
+      </div>
+    </div>
+  `).join('');
+
+  renderChoices(eventDef);
+}
+
+
+/* ============================= MINI GAMES ============================= */
+function miniModalBase(challenge){
+  const el=document.createElement('div'); el.className='minigame-backdrop';
+  el.innerHTML=`<div class="minigame-card"><div class="eyebrow">Story challenge</div><div class="minigame-title">${challenge.title}</div><div class="minigame-desc">${challenge.desc}</div><div class="minigame-hud"><span id="mini-status">Ready</span><span id="mini-score"></span></div><div class="minigame-stage" id="mini-stage"></div><div class="minigame-actions"><div class="mini-result" id="mini-result">Your result can change the story.</div><button class="mini-skip" id="mini-skip">Skip challenge</button></div></div>`;
+  document.body.appendChild(el); return el;
+}
+function finishMini(el, resolve, result){
+  state.minigames.played++; if(result.win) state.minigames.wins++; state.minigames.scores[result.id]=result.score;
+  const r=el.querySelector('#mini-result'); if(r) r.textContent=result.text;
+  setTimeout(()=>{el.remove();resolve(result);},650);
+}
+function playMiniGame(key){
+  const challenge=getStoryChallenge(key); if(!challenge || state.minigames.scores[challenge.id]!==undefined) return Promise.resolve(null);
+  stopSocialSim();
+  return new Promise(resolve=>{
+    const el=miniModalBase(challenge), stage=el.querySelector('#mini-stage'), status=el.querySelector('#mini-status'), scoreEl=el.querySelector('#mini-score');
+    let done=false, cleanup=()=>{};
+    const finish=(result)=>{if(done)return;done=true;cleanup();finishMini(el,resolve,{...result,id:challenge.id});};
+    el.querySelector('#mini-skip').addEventListener('click',()=>finish({win:false,score:0,text:'You let the others handle it. The story continues.'}));
+
+    if(challenge.id==='salvage'){
+      const items=['🧴','🧰','🪢','🥫','📻','🩹']; let found=0, time=12;
+      status.textContent='Find 4 supplies'; scoreEl.textContent=`${time}s`;
+      items.forEach((x,i)=>{const b=document.createElement('button');b.className='mini-item';b.textContent=x;b.style.left=(8+(i%3)*31)+'%';b.style.top=(18+Math.floor(i/3)*44)+'%';b.onclick=()=>{if(b.classList.contains('found'))return;b.classList.add('found');found++;status.textContent=`Supplies ${found}/4`;if(found>=4)finish({win:true,score:found,text:'You save the best supplies before the tide takes them.'});};stage.appendChild(b);});
+      const timer=setInterval(()=>{time--;scoreEl.textContent=`${time}s`;if(time<=0)finish({win:found>=4,score:found,text:found>=4?'You beat the tide.':'The tide claims some of the wreckage.'});},1000); cleanup=()=>clearInterval(timer);
+    }
+    if(challenge.id==='campbuild'){
+      const items=[['🪢',1],['🪵',1],['🧥',1],['🥫',0],['📻',0],['🩹',0]]; let found=0,time=12;
+      status.textContent='Grab 3 shelter materials'; scoreEl.textContent=`${time}s`;
+      items.forEach((it,i)=>{const b=document.createElement('button');b.className='mini-item';b.textContent=it[0];b.style.left=(8+(i%3)*31)+'%';b.style.top=(18+Math.floor(i/3)*44)+'%';b.onclick=()=>{if(b.classList.contains('found'))return;b.classList.add('found');if(it[1]){found++;status.textContent=`Materials ${found}/3`;if(found>=3)finish({win:true,score:found,text:'You get a dry shelter standing before night settles in.'});}else status.textContent='Useful later — not for the shelter.';};stage.appendChild(b);});
+      const timer=setInterval(()=>{time--;scoreEl.textContent=`${time}s`;if(time<=0)finish({win:found>=3,score:found,text:found>=3?'The shelter is ready.':'The shelter goes up half-finished, leaving everyone exposed overnight.'});},1000);cleanup=()=>clearInterval(timer);
+    }
+    if(challenge.id==='forage'){
+      const items=[['🥥',1],['🍌',1],['🐟',1],['🍄',0],['🌺',0],['🦀',1]]; let safe=0,bad=0,time=13;
+      status.textContent='Collect 3 safe foods'; scoreEl.textContent=`${time}s`;
+      items.forEach((it,i)=>{const b=document.createElement('button');b.className='mini-item';b.textContent=it[0];b.style.left=(8+(i%3)*31)+'%';b.style.top=(18+Math.floor(i/3)*44)+'%';b.onclick=()=>{if(b.classList.contains('found'))return;b.classList.add('found');if(it[1]){safe++;status.textContent=`Food ${safe}/3`;if(safe>=3)finish({win:true,score:safe,text:'You return with enough safe food to stretch the group through the storm.'});}else{bad++;status.textContent='Unsafe — leave it.';if(bad>=2)finish({win:false,score:safe,text:'Two bad picks waste precious daylight. The group goes into the storm hungry.'});}};stage.appendChild(b);});
+      const timer=setInterval(()=>{time--;scoreEl.textContent=`${time}s`;if(time<=0)finish({win:safe>=3,score:safe,text:safe>=3?'You make it back with food.':'Darkness ends the search before you gather enough.'});},1000);cleanup=()=>clearInterval(timer);
+    }
+    if(challenge.id==='water'){
+      let caught=0,time=12;status.textContent='Catch 8 drops';scoreEl.textContent=`${caught}/8`;
+      const spawner=setInterval(()=>{const d=document.createElement('button');d.className='drop';d.textContent='💧';d.style.left=(6+Math.random()*86)+'%';d.style.animationDuration=(2.3+Math.random()*1.5)+'s';d.onclick=()=>{caught++;scoreEl.textContent=`${caught}/8`;d.remove();if(caught>=8)finish({win:true,score:caught,text:'You fill the catch before the rain fades.'});};stage.appendChild(d);setTimeout(()=>d.remove(),3900);},430);
+      const timer=setInterval(()=>{time--;status.textContent=`Rain ends in ${time}s`;if(time<=0)finish({win:caught>=8,score:caught,text:caught>=8?'The group has enough water.':'You save some water, but not enough for everyone to relax.'});},1000); cleanup=()=>{clearInterval(spawner);clearInterval(timer)};
+    }
+
+    if(challenge.id==='tidepool'){
+      const finds=['🐚','🔩','🧭','🪸','🦀','🪨']; let good=0,bad=0,time=14;
+      status.textContent='Find 3 useful clues'; scoreEl.textContent=`${time}s`;
+      finds.forEach((x,i)=>{const b=document.createElement('button');b.className='mini-item';b.textContent=x;b.style.left=(8+(i%3)*31)+'%';b.style.top=(18+Math.floor(i/3)*44)+'%';b.onclick=()=>{if(b.classList.contains('found'))return;b.classList.add('found');if(['🔩','🧭','🐚'].includes(x)){good++;status.textContent=`Clues ${good}/3`;}else{bad++;status.textContent='Nothing useful there';}if(good>=3)finish({win:true,score:good,text:'You and Ama find a compass piece, a machine screw, and a shell marked with the same strange looping scratch.'});};stage.appendChild(b);});
+      const timer=setInterval(()=>{time--;scoreEl.textContent=`${time}s`;if(time<=0)finish({win:good>=3,score:good,text:good>=3?'Ama pockets the clues. She definitely remembers that you kept your promise.':'The tide rises before you can search everything, but Ama still appreciates that you came.'});},1000);cleanup=()=>clearInterval(timer);
+    }
+    if(challenge.id==='route'){
+      const routes = state.flags.sided_priya ? ['Shelter','Food','Water'] : state.flags.proposed_compromise ? ['Camp','Ridge','Signal'] : ['Beach','Jungle','Ridge'];
+      const correct = state.flags.sided_priya ? [1,2,0] : state.flags.proposed_compromise ? [0,2,1] : [0,1,2];
+      let step=0;
+      stage.innerHTML='<div class="minigame-desc" style="text-align:center;margin:22px 0 18px">Choose the next move. One bad call ends the run.</div><div class="lock-grid" style="grid-template-columns:repeat(3,110px);height:170px">'+routes.map((r,i)=>`<button class="lock-pad" data-route="${i}" style="font-size:14px">${r}</button>`).join('')+'</div>';
+      status.textContent='Plan the route';scoreEl.textContent='0/3';
+      [...stage.querySelectorAll('[data-route]')].forEach((b,i)=>b.onclick=()=>{if(i!==correct[step]){finish({win:false,score:step,text:'The plan gets messy and the group has to double back, costing time and patience.'});return;}step++;scoreEl.textContent=`${step}/3`;b.classList.add('good');if(step===3)finish({win:true,score:3,text:state.flags.sided_priya?'Your fortification order works. Priya gives you an approving look while Malik grudgingly admits the camp is stronger.':state.flags.proposed_compromise?'Your split plan works. Both teams make it back, proving your compromise was more than talk.':'You lead the ridge team safely. Malik treats you like a partner now, not just another survivor.'});});
+    }
+    if(challenge.id==='clues'){
+      const clues=[['8 ID','Eight sets of initials — including yours.'],['P-04','A stamped code: P-04.'],['◈','The exact symbol Dez carved.'],['RUST','Old rust around a newer screw.'],['SAND','Fresh sand packed beneath the plate.'],['X','A scratch that means nothing.']];
+      let found=0,miss=0;status.textContent='Find 3 real clues';scoreEl.textContent='0/3';
+      clues.forEach((c,i)=>{const b=document.createElement('button');b.className='mini-item';b.textContent=c[0];b.style.fontSize='13px';b.style.left=(8+(i%3)*31)+'%';b.style.top=(18+Math.floor(i/3)*44)+'%';b.onclick=()=>{if(b.classList.contains('found'))return;b.classList.add('found');if(i<3){found++;scoreEl.textContent=`${found}/3`;status.textContent=c[1];if(found===3)finish({win:true,score:3,text:state.flags.ama_has_plate?'Ama connects the initials, code, and symbol into a pattern that will matter later.':state.flags.kept_plate_secret?'You and Dez document the plate without telling anyone else. The secret now belongs to both of you.':'The group finally stops arguing long enough to agree on three facts: the initials, the code, and the symbol.'});}else{miss++;status.textContent='That detail may be a distraction.';if(miss>=3)finish({win:false,score:found,text:'Too many theories pile up at once. You leave the plate with more questions than answers.'});}};stage.appendChild(b);});
+    }
+    if(challenge.id==='storm'){
+      stage.innerHTML='<div class="brace-zone"><div class="brace-sweet"></div><div class="brace-marker" id="brace-marker"></div></div><button class="btn" id="brace-hit" style="position:absolute;left:50%;bottom:28px;transform:translateX(-50%)">BRACE NOW</button>';
+      let hits=0,tries=0,pos=0,dir=1; const target=(state.survival.shelter>=4?2:state.survival.shelter>=2?3:4); const maxTries=state.flags.salvage_success?7:6; status.textContent=`Land ${target} strong braces${state.survival.shelter<=1?' — weak shelter!':''}`;scoreEl.textContent=`0/${target}`;
+      const marker=stage.querySelector('#brace-marker'); const anim=setInterval(()=>{pos+=dir*3;if(pos>=96){pos=96;dir=-1}if(pos<=0){pos=0;dir=1}marker.style.left=pos+'%';},28);
+      stage.querySelector('#brace-hit').onclick=()=>{tries++;const good=pos>=39&&pos<=61;if(good)hits++;scoreEl.textContent=`${hits}/${target}`;status.textContent=good?'Strong hold!':'The wind slips through!';if(hits>=target)finish({win:true,score:hits,text:state.flags.route_success?'Your earlier route planning put the right supplies in reach. The shelter locks down fast and holds.':'The shelter holds through the worst gust.'});else if(tries>=maxTries)finish({win:false,score:hits,text:'The shelter survives, but the storm tears away part of camp.'});}; cleanup=()=>clearInterval(anim);
+    }
+    if(challenge.id==='lock'){
+      stage.innerHTML='<div class="lock-grid">'+Array.from({length:9},(_,i)=>`<button class="lock-pad" data-pad="${i}">${['○','△','□','◇','✦','☾','⌁','✧','◈'][i]}</button>`).join('')+'</div>';
+      const pads=[...stage.querySelectorAll('.lock-pad')], seq=Array.from({length:5},()=>Math.floor(Math.random()*9));let input=[],accept=false;
+      status.textContent='Watch the sequence';scoreEl.textContent='5 symbols';
+      seq.forEach((n,i)=>setTimeout(()=>{pads[n].classList.add('flash');setTimeout(()=>pads[n].classList.remove('flash'),420);if(i===seq.length-1)setTimeout(()=>{accept=true;status.textContent='Repeat it';},600);},650+i*720));
+      pads.forEach((p,i)=>p.onclick=()=>{if(!accept)return;p.classList.add('good');setTimeout(()=>p.classList.remove('good'),180);input.push(i);const at=input.length-1;if(i!==seq[at])finish({win:false,score:at,text:'The lock rejects the pattern. Ama manages to force a secondary release.'});else if(input.length===seq.length)finish({win:true,score:5,text:'The symbols align. Somewhere below you, a lock clicks open.'});});
+    }
+    if(challenge.id==='fight-camp' || challenge.id==='fight-rival' || challenge.id==='fight-final'){
+      const targetHits=challenge.id==='fight-final' ? 4 : 3;
+      const speed=challenge.id==='fight-final' ? 4.5 : challenge.id==='fight-rival' ? 4 : 3.4;
+      let hits=0,misses=0,pos=0,dir=1;
+      stage.innerHTML=`<div class="fight-stage"><div style="font-family:var(--serif);font-size:20px;font-weight:700">${challenge.id==='fight-camp'?'Malik and Priya lunge toward each other.':challenge.id==='fight-rival'?'The crate tips as the confrontation turns into a shove.':'Two arguments erupt at once while the fire team loses control.'}</div><div class="fight-meter"><div class="fight-safe"></div><div class="fight-marker" id="fight-marker"></div></div><div class="fight-actions"><button class="fight-action" id="fight-hit">${challenge.id==='fight-rival'?'BLOCK / HOLD':'BREAK IT UP'}</button></div><div class="minigame-desc">Hit the button while the marker is in the center zone. Miss too many times and the fight costs the camp supplies.</div></div>`;
+      const marker=stage.querySelector('#fight-marker');
+      status.textContent=`Land ${targetHits} clean moves`;scoreEl.textContent=`0/${targetHits}`;
+      const anim=setInterval(()=>{pos+=dir*speed;if(pos>=97){pos=97;dir=-1}if(pos<=0){pos=0;dir=1}marker.style.left=pos+'%';},26);
+      stage.querySelector('#fight-hit').onclick=()=>{const good=pos>=39&&pos<=61;if(good){hits++;status.textContent=challenge.id==='fight-rival'?'You keep control of the crate.':'Clean intervention!';}else{misses++;status.textContent='Missed — the fight gets worse.';}scoreEl.textContent=`${hits}/${targetHits}`;if(hits>=targetHits){finish({win:true,score:hits,text:challenge.id==='fight-camp'?'You stop the first real fight before anybody gets hurt or the ration bag tears open.':challenge.id==='fight-rival'?'You hold your ground without losing the supply crate. Your rival backs off, furious but finished.':'You shut down the beach brawl long enough for the signal team to finish the fire.'});}else if(misses>=3){finish({win:false,score:hits,text:challenge.id==='fight-camp'?'The fight spills into camp. Food is crushed and trust drops fast.':challenge.id==='fight-rival'?'The crate hits the sand and part of the food supply is ruined.':'The brawl costs precious time and the fire nearly dies.'});}};
+      cleanup=()=>clearInterval(anim);
+    }
+
+    if(challenge.id==='signal'){
+      stage.innerHTML='<div class="fire-stage"><div class="fire-emoji" id="fire-emoji">🔥</div><div class="ember-row">'+[0,1,2,3].map(i=>`<button class="ember-btn" data-ember="${i}">${['🪵','🍂','💨','✨'][i]}</button>`).join('')+'</div><div class="minigame-desc">Watch the highlighted rhythm, then repeat it.</div></div>';
+      const btns=[...stage.querySelectorAll('.ember-btn')],fire=stage.querySelector('#fire-emoji');
+      const seq=[0,1,2,0,3];
+      if(state.survival.water<=1 || !state.flags.water_success) seq.push(2);
+      if(state.survival.shelter<=1 || !state.flags.shelter_held) seq.push(1);
+      if(state.survival.signal<=1) seq.push(3);
+      let input=[],accept=false;status.textContent='Watch the fire rhythm';scoreEl.textContent=seq.length>5?'Harder because of earlier survival losses':'Final challenge';
+      seq.forEach((n,i)=>setTimeout(()=>{btns[n].classList.add('active');setTimeout(()=>btns[n].classList.remove('active'),350);if(i===seq.length-1)setTimeout(()=>{accept=true;status.textContent='Repeat the rhythm';},500);},500+i*560));
+      btns.forEach((b,i)=>b.onclick=()=>{if(!accept)return;input.push(i);b.classList.add('active');setTimeout(()=>b.classList.remove('active'),160);const at=input.length-1;if(i!==seq[at])finish({win:false,score:at,text:'The flame sputters, but the group rallies and gets it burning anyway.'});else if(input.length===seq.length){fire.classList.add('lit');finish({win:true,score:seq.length,text:'The signal fire roars to life. The ship turns toward shore.'});}});
+    }
+  });
+}
+async function playFightChallenge(challengeKey){
+  const challenge=STORY_CHALLENGES[challengeKey];
+  if(!challenge || state.minigames.scores[challenge.id]!==undefined) return null;
+  const originalGet=getStoryChallenge;
+  // playMiniGame normally resolves by story key; temporarily route this bonus challenge directly.
+  STORY_CHALLENGES.__bonus=challenge;
+  const old=STORY_CHALLENGES.__bonus;
+  const result=await (async()=>{
+    const saved=STORY_CHALLENGES['__bonus'];
+    return await playMiniGame('__bonus');
+  })();
+  delete STORY_CHALLENGES.__bonus;
+  return result;
+}
+
+function applyFightOutcome(kind,result){
+  if(!result) return;
+  if(result.win){state.fights.won++;state.fights.stopped++;changeTension(-12);}
+  else{state.fights.lost++;changeTension(18);applySurvival({food:-1,shelter:-1});}
+  state.flags[kind+'_win']=!!result.win;
+  if(kind==='camp_fight'){
+    if(result.win) applyEffects({malik:{respect:8},priya:{respect:8}});
+    else applyEffects({malik:{resentment:8},priya:{resentment:8},all:{fear:4}});
+  }
+  if(kind==='rival_fight' && state._d3target){
+    applyEffects({[state._d3target]:result.win?{respect:10,resentment:8}:{respect:-5,resentment:12}});
+  }
+  if(kind==='final_fight' && result.win) applySurvival({signal:1});
+}
+
+function applyMiniGameOutcome(key,result){
+  if(!result)return;
+  if(key==='d1-morning'){state.flags.salvage_success=result.win;if(result.win){applySurvival({food:1,shelter:1});applyEffects({malik:{respect:8},nia:{trust:5}})}else applySurvival({food:-1})}
+  if(key==='d1-afternoon'){state.flags.tidepool_played=true;if(result.win){state.flags.tidepool_clues=true;applySurvival({signal:1});applyEffects({ama:{trust:12,affection:8}})}}
+  if(key==='d1-evening'){state.flags.first_shelter=result.win;applySurvival(result.win?{shelter:2}:{shelter:-1})}
+  if(key==='d2-morning'){state.flags.water_success=result.win;if(result.win){applySurvival({water:2});applyEffects({all:{trust:4},nia:{affection:5}})}else applySurvival({water:-1})}
+  if(key==='d2-evening'){state.flags.forage_success=result.win;applySurvival(result.win?{food:2}:{food:-1})}
+  if(key==='d2-afternoon'){state.flags.route_success=result.win;if(result.win){applySurvival(state.flags.sided_priya?{shelter:1}:state.flags.sided_malik?{signal:1}:{shelter:1,signal:1});if(state.flags.sided_malik)applyEffects({malik:{trust:10,respect:8}});else if(state.flags.sided_priya)applyEffects({priya:{trust:10,respect:8}});else applyEffects({malik:{respect:6},priya:{respect:6}})}}
+  if(key==='d2-night'){state.flags.plate_clues_found=result.win;if(result.win){if(state.flags.ama_has_plate)applyEffects({ama:{respect:8,trust:6}});else if(state.flags.kept_plate_secret)applyEffects({dez:{trust:8,loyalty:6}});else applyEffects({all:{respect:3}})}}
+  if(key==='d3-morning'){state.flags.shelter_held=result.win;applySurvival(result.win?{shelter:1}:{shelter:-2});applyEffects(result.win?{all:{respect:5}}:{all:{fear:4}})}
+  if(key==='d3-evening'){state.flags.lock_solved=result.win;applyEffects(result.win?{ama:{respect:10,trust:5}}:{ama:{affection:3}})}
+  if(key==='d3-night'){state.flags.signal_fire_success=result.win;applySurvival(result.win?{signal:2}:{signal:-1});applyEffects(result.win?{all:{trust:6}}:{all:{fear:2}})}
+}
+
+
+function die(reason, detail){
+  state.alive=false;
+  state.deathReason=reason;
+  state.deathDetail=detail;
+  stopSocialSim();
+  renderDeath();
+}
+
+function renderDeath(){
+  const day=currentDayNumber();
+  app.innerHTML=`
+    <div class="death-screen">
+      <div class="eyebrow">DAY ${day} · RUN ENDED</div>
+      <div class="death-card">
+        <div class="death-title">YOU DIED</div>
+        <div class="death-reason">${state.deathReason||'The island won this time.'}</div>
+        <div class="death-detail">${state.deathDetail||'A risky choice became a survival consequence. Earlier preparation can change whether the same choice is survivable on another run.'}</div>
+      </div>
+      <div class="survival-hud">${Object.keys(state.survival).map(k=>`<span class="survival-pill ${(state.survival[k]||0)<=1?'low':''}">${({food:'🥫 Food',water:'💧 Water',shelter:'⛺ Shelter',signal:'📡 Signal'})[k]} <strong>${state.survival[k]}/5</strong></span>`).join('')}</div>
+      <button class="btn" id="death-restart">Try Again</button>
+    </div>`;
+  document.getElementById('death-restart').onclick=()=>beginGame();
+}
+
+function lethalChoiceCheck(storyKey, choice){
+  if(!choice.lethal) return false;
+  if(choice.lethal==='storm_wreck'){
+    const prepared=state.flags.route_success || state.survival.shelter>=3 || composite(state,'malik')>=35;
+    if(!prepared){
+      die('You never made it back from the wreckage.', 'You went alone as the storm hit without a safe route, strong shelter preparation, or enough trust for Malik to follow you. The wind tears loose part of the wreckage before you can reach camp.');
+      return true;
+    }
+    showToast(state.flags.route_success?'Your earlier route work gets you back safely.':composite(state,'malik')>=35?'Malik refuses to let you go alone.':'The reinforced camp gives you a safe return point.');
+  }
+  if(choice.lethal==='lookout_alone'){
+    const prepared=state.flags.shelter_held && state.survival.signal>=2;
+    if(!prepared){
+      die('The lookout collapses beneath you.', 'You left the signal team during bad conditions without a stable camp or strong signal already established. The wet ridge gives way before anyone realizes where you went.');
+      return true;
+    }
+    showToast('Earlier preparation makes the lookout risk survivable.');
+  }
+  return false;
+}
+
+function postChallengeDeathCheck(storyKey, choice, result){
+  if(choice.lethal==='ruins_alone'){
+    const protectedByClues=state.flags.plate_clues_found || state.flags.tidepool_clues;
+    if(!result?.win && !protectedByClues){
+      die('The underground door seals behind you.', 'You entered alone without enough earlier clues and then failed the lock challenge. Nobody knows which passage you took, and the room goes dark.');
+      return true;
+    }
+    if(result?.win) showToast('You survive the underground site because you solved the lock.');
+    else if(protectedByClues) showToast('Your earlier clues reveal a second exit. You barely get out.');
+  }
+  return false;
+}
+
+function renderChoices(eventDef){
+  const wrap = document.getElementById('choices-wrap');
+  wrap.innerHTML = '';
+  const letters = ['A','B','C'];
+  eventDef.choices.forEach((choice, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `<span class="choice-letter">${letters[i]}</span><span>${choice.text}${choice.risk?`<span class="risk-tag">${choice.risk}</span>`:''}</span>`;
+    btn.addEventListener('click', ()=> selectChoice(eventDef, choice));
+    wrap.appendChild(btn);
+  });
+}
+
+async function selectChoice(eventDef, choice){
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled = true);
+  const storyKey=SEQUENCE[state.seqIndex];
+
+  applyEffects(choice.effects);
+  applySurvival(choice.survival);
+  if(choice.tension) changeTension(choice.tension);
+  if(choice.flags) Object.assign(state.flags, choice.flags);
+  (choice.tag||[]).forEach(t=>{ if(state.tagCounts[t] !== undefined) state.tagCounts[t]++; });
+
+  if(lethalChoiceCheck(storyKey, choice)) return;
+
+  const scene = state._lastScene || {narration:eventDef.beat, dialogue:[]};
+  const sceneSummary = [scene.narration, ...scene.dialogue.map(d=>`${CHARS[d.speaker].name.split(' ')[0]}: "${d.line}"`)].join(' ');
+  state.journal.push({ day: currentDayNumber(), slot: currentSlot(), title: eventDef.title, scene: sceneSummary, choice: choice.text });
+
+  const storyChallenge=getStoryChallenge(storyKey);
+  if(storyChallenge){
+    const result=await playMiniGame(storyKey);
+    applyMiniGameOutcome(storyKey,result);
+    if(postChallengeDeathCheck(storyKey, choice, result)) return;
+    if(result) state.journal.push({day:currentDayNumber(),slot:currentSlot(),title:`Challenge: ${storyChallenge.title}`,scene:result.text,choice:result.win?'Completed':'Not completed'});
+  }
+
+  if(storyKey==='d2-afternoon'){
+    const result=await playFightChallenge('fight-camp');
+    applyFightOutcome('camp_fight',result);
+    if(result) state.journal.push({day:currentDayNumber(),slot:currentSlot(),title:'Fight: Camp Showdown',scene:result.text,choice:result.win?'Fight stopped':'Fight got out of control'});
+  }
+  if(storyKey==='d3-afternoon' && !state.flags.promised_ama_exploration && (state.flags.stood_ground_rival || state.tension>=55)){
+    const result=await playFightChallenge('fight-rival');
+    applyFightOutcome('rival_fight',result);
+    if(!result.win && state.tension>=85 && state.survival.shelter<=1){ die('The supply fight turns deadly.', 'Camp tension was already at the breaking point and your shelter was badly damaged. During the struggle you are knocked into broken wreckage before the others can stop it.'); return; }
+    if(result) state.journal.push({day:currentDayNumber(),slot:currentSlot(),title:'Fight: Supply Crate Scuffle',scene:result.text,choice:result.win?'Held the line':'Lost supplies'});
+  }
+  if(storyKey==='d3-night' && state.tension>=55){
+    const result=await playFightChallenge('fight-final');
+    applyFightOutcome('final_fight',result);
+    if(!result.win && state.tension>=85 && state.survival.signal<=1){ die('The beach fight costs the group its last chance.', 'With camp tension out of control and almost no signal prepared, the fight carries into the surf as the storm surges. You do not make it back to shore.'); return; }
+    if(result) state.journal.push({day:currentDayNumber(),slot:currentSlot(),title:'Fight: Beach Brawl',scene:result.text,choice:result.win?'Camp held together':'Camp fractured'});
+  }
+
+  state.seqIndex++;
+  renderCastPanelUpdate();
+
+  if(state.seqIndex >= SEQUENCE.length){
+    render();
+    await runEnding();
+  }else{
+    renderGame();
+    await loadScene(false);
+  }
+}
+
+function renderCastPanelUpdate(){
+  const panel = document.querySelector('.cast-panel');
+  if(panel) panel.outerHTML = renderCastPanel();
+  bindCastPanel();
+}
+
+/* ---------- Character modal ---------- */
+function openCharModal(id){
+  const c = CHARS[id];
+  const s = state.stats[id];
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  const statRows = STAT_KEYS.map(stat=>{
+    const val = s[stat];
+    const pct = Math.abs(val);
+    const isNeg = NEGATIVE_STATS.includes(stat);
+    const color = isNeg ? 'var(--coral)' : 'var(--lagoon)';
+    return `
+      <div class="stat-row">
+        <div class="stat-label">${stat}</div>
+        <div class="stat-track">
+          <div class="stat-fill" style="width:${pct/2}%; background:${color}; ${val>=0?`left:50%;`:`right:50%;`}"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="modal-head">
+        ${portraitHTML(id,64,true)}
+        <div>
+          <div class="name">${c.name}</div>
+          <div class="role">${c.role}</div>
+        </div>
+      </div>
+      ${statRows}
+      <div class="modal-trait">${c.trait}</div>
+      <div class="modal-close-row"><button class="btn ghost" id="close-modal">Close</button></div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+  document.getElementById('close-modal').addEventListener('click', ()=>backdrop.remove());
+  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) backdrop.remove(); });
+}
+
+/* ---------- Journal ---------- */
+function openJournal(){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'journal-backdrop';
+  const entries = state.journal.slice().reverse().map(e=>`
+    <div class="journal-entry">
+      <div class="jday">Day ${e.day} · ${SLOT_LABEL[e.slot]} · ${e.title}</div>
+      <div class="jtext">${e.scene}</div>
+      <div class="jchoice">→ ${e.choice}</div>
+    </div>
+  `).join('') || '<div class="jtext">Nothing written yet.</div>';
+  backdrop.innerHTML = `
+    <div class="journal-drawer">
+      <h3 style="font-family:var(--serif); font-size:20px; margin-bottom:6px;">📓 Journal</h3>
+      <div class="eyebrow" style="margin-bottom:14px;">Everything that's happened, most recent first</div>
+      ${entries}
+      <div style="margin-top:18px;"><button class="btn ghost" id="close-journal">Close</button></div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+  document.getElementById('close-journal').addEventListener('click', ()=>backdrop.remove());
+  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) backdrop.remove(); });
+}
+
+/* ---------- Ending ---------- */
+function computeArchetype(){
+  let best = 'diplomat', bestCount = -1;
+  const order = ['leader','diplomat','strategist','protector','peacemaker','wildcard','loneWolf'];
+  for(const key of order){
+    if(state.tagCounts[key] > bestCount){ bestCount = state.tagCounts[key]; best = key; }
+  }
+  return best;
+}
+function closestAllyId(){
+  let best=null,bestScore=-Infinity;
+  for(const id of CHAR_ORDER){ const c=composite(state,id); if(c>bestScore){bestScore=c;best=id;} }
+  return best;
+}
+function biggestRivalId(){
+  let best=null,bestScore=Infinity;
+  for(const id of CHAR_ORDER){ const c=composite(state,id); if(c<bestScore){bestScore=c;best=id;} }
+  return best;
+}
+
+async function runEnding(){
+  const archetypeKey = computeArchetype();
+  const ally = closestAllyId();
+  const rival = biggestRivalId();
+  const el = document.getElementById('ending-text');
+  if(el) el.innerHTML = 'The ship draws closer<span class="dots"></span>';
+  const text = await generateEndingText(archetypeKey, ally, rival);
+  const el2 = document.getElementById('ending-text');
+  if(el2) el2.textContent = text;
+}
+
+function renderEnding(){
+  stopSocialSim();
+  const ally = closestAllyId();
+  const rival = biggestRivalId();
+  const survivalTotal=Object.values(state.survival||{}).reduce((a,b)=>a+b,0);
+  const campResult=state.tension>=70?'Camp Fractured':state.tension>=45?'Barely Together':'Camp Held Together';
+  const rescueResult=(state.flags.signal_fire_success && survivalTotal>=8)?'Direct rescue':survivalTotal<6?'Rescue delayed':'Rescue reached shore';
+  app.innerHTML = `
+    <div class="ending-screen">
+      <div class="run-complete-badge">✓ Three-day survival run complete</div>
+      <div class="eyebrow">RESCUE REACHED THE BEACH</div>
+      <div class="ending-cast">${CHAR_ORDER.map(id=>portraitHTML(id,44,true)).join('')}</div>
+      <div class="archetype-card">
+        <div class="eyebrow">CAMP OUTCOME</div>
+        <div class="archetype-name" style="font-size:34px">${campResult}</div>
+        <div style="font-size:14px;line-height:1.7;color:var(--sand-dim)">This ending is based on the camp's survival condition, tension, fights, and rescue preparation — not a personality type.</div>
+      </div>
+      <div class="ending-summary" id="ending-text">Loading<span class="dots"></span></div>
+      <div class="ending-grid">
+        <div class="ending-stat">${portraitHTML(ally,36,false)}<div><div class="k">Still With You</div><div class="v">${CHARS[ally].name}</div></div></div>
+        <div class="ending-stat">${portraitHTML(rival,36,false)}<div><div class="k">Biggest Rival</div><div class="v">${CHARS[rival].name}</div></div></div>
+        <div class="ending-stat"><div><div class="k">Fights Controlled</div><div class="v">${state.fights.won}</div></div></div>
+        <div class="ending-stat"><div><div class="k">Fights Lost</div><div class="v">${state.fights.lost}</div></div></div>
+        <div class="ending-stat"><div><div class="k">Final Tension</div><div class="v">${state.tension}/100 · ${tensionLabel()}</div></div></div>
+        <div class="ending-stat"><div><div class="k">Rescue</div><div class="v" style="font-size:13px">${rescueResult}</div></div></div>
+      </div>
+      <button class="btn" id="replay-btn" style="margin-top:10px;">Play Again</button>
+    </div>
+  `;
+  document.getElementById('replay-btn').addEventListener('click', ()=>{
+    state = initState();
+    render();
+  });
+}
+
+/* ============================= INIT ============================= */
+state = initState();
+render();
+</script>
+</body>
+</html>
